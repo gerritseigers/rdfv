@@ -1,0 +1,53 @@
+﻿@page "/deviceSettings/{deviceId}"
+
+@if(settingsData == null)
+{
+    <h4>@message</h4>
+}
+else
+{
+    <h4>Current device settings received</h4>
+
+    <div class="row">
+        On this page you can change the sevice settings. 
+    </div>
+    <hr/>
+    <div class="row">
+        <div class="col-3">
+            Number of measurements before sending:
+        </div> 
+        <div class="col-2">
+           <RadzenNumeric style="display: block" ShowUpDown="false" TValue="int"  @bind-Value="settingsData.Buffer" Name="Buffer" />
+        </div>
+    </div>
+
+     <div class="row">
+        <div class="col-3">
+            Time in ms between each measurement:
+        </div> 
+        <div class="col-2">
+           <RadzenNumeric style="display: block" ShowUpDown="false" TValue="int"  @bind-Value="settingsData.Interval" Name="Buffer" />
+        </div>
+    </div>
+
+@*         <div class="row">
+        <div class="col-3">
+            Number of Repeats:
+        </div> 
+        <div class="col-2">
+           <RadzenNumeric style="display: block" ShowUpDown="false" TValue="int"  @bind-Value="settingsData.Repeats" Name="Buffer" />
+        </div>
+    </div>*@
+
+    <br/>
+
+    <div class="row">
+        <div class="col-3">
+           <RadzenButton btnstyle Click=@(args => SendSettings()) Text="Send settings to Arduino"></RadzenButton> 
+        </div>
+        <div class="col-3">
+           <RadzenButton btnstyle Click=@(args => CancelSettings()) Text="Back to homepage"></RadzenButton> 
+        </div>
+    </div>
+
+}

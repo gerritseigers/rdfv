@@ -1,0 +1,43 @@
+﻿@page "/"
+@using Wur.RDFV.Core.ViewModels
+@using Radzen
+
+<h3>Overview</h3>
+
+
+<RadzenDataGrid Data=@devices AllowFiltering="true" AllowPaging = "true" TItem="DeviceRegistration">
+    <Columns>
+
+        <RadzenDataGridColumn Width="100px" TItem="DeviceRegistration" Property="DeviceName" Title="Device"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Width="50px" TItem="DeviceRegistration" Property="IsConnected" Title="Is Connected"></RadzenDataGridColumn>
+        <RadzenDataGridColumn Width="100px" TItem="DeviceRegistration" Property="DeviceName" Title="Settings">
+            <Template Context="data">
+                @if (data.IsConnected == true)
+                {
+                    <RadzenButton ButtonStyle=ButtonStyle.Info class="m-1" Text="Settings" Click=@(args => @OpenSettings(data.DeviceName)) ></RadzenButton>
+                }
+                else
+                {
+                    <RadzenButton ButtonStyle=ButtonStyle.Info class="m-1" Text="Settings" Click=@(args => @OpenSettings(data.DeviceName)) ></RadzenButton>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Width="100px" TItem="DeviceRegistration" Property="DeviceName" Title="Data">
+            <Template Context="data">
+                @if (data.IsConnected == true)
+                {
+                    <RadzenButton ButtonStyle=ButtonStyle.Info class="m-1" Text="Read data" Click=@(args => @OpenData(data.DeviceName)) ></RadzenButton>
+                }
+                else
+                {
+                    <RadzenButton ButtonStyle=ButtonStyle.Info class="m-1" Text="Read data" Click=@(args => @OpenData(data.DeviceName)) ></RadzenButton>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+
+}

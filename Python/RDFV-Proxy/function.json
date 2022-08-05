@@ -1,0 +1,15 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "type": "eventHubTrigger",
+      "name": "event",
+      "direction": "in",
+      "eventHubName": "%eventhubname%",
+      "connection": "IOTHubConnection",
+      "cardinality": "one",
+      "consumerGroup": "%consumerGroup%",
+      "dataType": "binary"
+    }
+  ]
+}
