@@ -119,15 +119,15 @@ void loop();
 void setGain(Adafruit_ADS1115 &device, uint8_t gain);
 #line 412 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 564 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 586 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages);
-#line 784 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 806 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData(DataRecord *record);
-#line 857 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 879 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 948 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 970 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1053 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1075 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
 #line 112 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
@@ -451,8 +451,30 @@ void publishSettings()
   strcat(sendBuffer, "\"");
   strcat(sendBuffer, deviceId.c_str());
   strcat(sendBuffer,"\"");
-
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"IMeiCode\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, imeiCode.c_str()); 
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"ICCID\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, ICCID.c_str());
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Timestamp\":");
+  strcat(sendBuffer, String(getTime()).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Buffer\":");
+  strcat(sendBuffer, String(params._defaultNumberOfMeasurements).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Interval\":");
+  strcat(sendBuffer, String(params._defaultMeasurementInterval).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Repeats\":");
+  strcat(sendBuffer, String(params._defaultRepeats).c_str() );
   strcat(sendBuffer, "}");
+  
   jsonMessage += "{";
   jsonMessage += "\"Type\":";
   jsonMessage += "\"Settings\"";

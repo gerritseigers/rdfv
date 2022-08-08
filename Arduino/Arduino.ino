@@ -430,8 +430,30 @@ void publishSettings()
   strcat(sendBuffer, "\"");
   strcat(sendBuffer, deviceId.c_str());
   strcat(sendBuffer,"\"");
-
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"IMeiCode\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, imeiCode.c_str()); 
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"ICCID\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, ICCID.c_str());
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Timestamp\":");
+  strcat(sendBuffer, String(getTime()).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Buffer\":");
+  strcat(sendBuffer, String(params._defaultNumberOfMeasurements).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Interval\":");
+  strcat(sendBuffer, String(params._defaultMeasurementInterval).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Repeats\":");
+  strcat(sendBuffer, String(params._defaultRepeats).c_str() );
   strcat(sendBuffer, "}");
+  
   jsonMessage += "{";
   jsonMessage += "\"Type\":";
   jsonMessage += "\"Settings\"";

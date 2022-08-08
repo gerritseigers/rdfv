@@ -417,8 +417,30 @@ void publishSettings()
   strcat(sendBuffer, "\"");
   strcat(sendBuffer, deviceId.c_str());
   strcat(sendBuffer,"\"");
-
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"IMeiCode\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, imeiCode.c_str());
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"ICCID\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, ICCID.c_str());
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Timestamp\":");
+  strcat(sendBuffer, String(getTime()).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Buffer\":");
+  strcat(sendBuffer, String(params._defaultNumberOfMeasurements).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Interval\":");
+  strcat(sendBuffer, String(params._defaultMeasurementInterval).c_str() );
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"Repeats\":");
+  strcat(sendBuffer, String(params._defaultRepeats).c_str() );
   strcat(sendBuffer, "}");
+
   jsonMessage += "{";
   jsonMessage += "\"Type\":";
   jsonMessage += "\"Settings\"";
@@ -550,7 +572,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 564 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 586 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages)
 {
   // sodaq_wdt_disable();
@@ -848,7 +870,7 @@ void getSensorData(DataRecord *record)
  * Set variables from Azure.
 
  */
-# 857 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 879 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 
