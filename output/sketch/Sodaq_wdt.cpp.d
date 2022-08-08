@@ -1,5 +1,5 @@
-c:\Marien\Sources\output\sketch\Sodaq_wdt.cpp.o: \
- c:\Marien\Sources\output\sketch\Sodaq_wdt.cpp \
+c:\Projects\rdfv\output\sketch\Sodaq_wdt.cpp.o: \
+ c:\Projects\rdfv\output\sketch\Sodaq_wdt.cpp \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/Arduino.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/ArduinoAPI.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/Binary.h \
@@ -100,4 +100,4 @@ c:\Marien\Sources\output\sketch\Sodaq_wdt.cpp.o: \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/USB/USB_host.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/USB/samd21_host.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/itoa.h \
- c:\Marien\Sources\output\sketch\Sodaq_wdt.h
+ c:\Projects\rdfv\output\sketch\Sodaq_wdt.h

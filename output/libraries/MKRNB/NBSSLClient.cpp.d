@@ -1,4 +1,4 @@
-c:\Marien\Sources\output\libraries\MKRNB\NBSSLClient.cpp.o: \
+c:\Projects\rdfv\output\libraries\MKRNB\NBSSLClient.cpp.o: \
  C:\Arduino15\libraries\MKRNB\src\NBSSLClient.cpp \
  C:\Arduino15\libraries\MKRNB\src\utility/NBRootCerts.h \
  C:\Arduino15\libraries\MKRNB\src\Modem.h \

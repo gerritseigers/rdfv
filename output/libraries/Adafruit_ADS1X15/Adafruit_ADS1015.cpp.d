@@ -1,4 +1,4 @@
-c:\Marien\Sources\output\libraries\Adafruit_ADS1X15\Adafruit_ADS1015.cpp.o: \
+c:\Projects\rdfv\output\libraries\Adafruit_ADS1X15\Adafruit_ADS1015.cpp.o: \
  C:\Arduino15\libraries\Adafruit_ADS1X15\Adafruit_ADS1015.cpp \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/Arduino.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/ArduinoAPI.h \

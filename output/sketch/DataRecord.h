@@ -1,4 +1,4 @@
-#line 1 "c:\\Marien\\Sources\\Arduino\\DataRecord.h"
+#line 1 "c:\\Projects\\rdfv\\Arduino\\DataRecord.h"
 #pragma once
 
 struct DataRecord

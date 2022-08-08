@@ -1,27 +1,27 @@
-# 1 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 1 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 /*
 
 
 
 */
-# 5 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
-# 6 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 7 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 8 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 9 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 10 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 11 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 12 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 13 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 14 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 15 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 16 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 17 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 18 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 19 "c:\\Marien\\Sources\\Arduino\\Arduino.ino" 2
-# 39 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 5 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 6 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 7 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 8 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 9 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 10 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 11 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 12 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 13 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 14 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 15 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 16 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 17 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 18 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 19 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 39 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 
-# 39 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 39 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 //#define PORT1 "T"
 
 
@@ -54,7 +54,7 @@ String IMEI = "";
 String DeviceName = ""; //
 String MQTTBroker = "";
 String Error = "";
-
+char sendBuffer[500];
 DataRecord measurements[10 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
 int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
@@ -170,14 +170,14 @@ void setup()
 
   if (params._useADC1 == true)
   {
-    SerialUSB.print("Setting gain for ADC1");
+    SerialUSB.print("Setting gain for ADC1 :");
     SerialUSB.println(params._gain_1);
     setGain(ads1115_48, params._gain_1);
   }
 
   if (params._useADC2 == true)
   {
-    SerialUSB.print("Setting gain for ADC2");
+    SerialUSB.print("Setting gain for ADC2 :");
     SerialUSB.println(params._gain_2);
     setGain(ads1115_49, params._gain_2);
   }
@@ -216,13 +216,13 @@ void loop()
 
   if (measurementPointer >= params._defaultNumberOfMeasurements)
   {
-
     SerialUSB.println("WDT save delay (8000) in loop just before publishMessage");
-    sodaq_wdt_safe_delay(8000);
     mqttClient.poll();
     publishMessage(measurements, measurementPointer);
     measurementPointer = 0;
   }
+  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
+
   // Reset the pointer
 }
 
@@ -237,7 +237,7 @@ unsigned long getTime()
  * Prints a boot-up message that includes project name, version and Cpu reset cause.
 
  */
-# 252 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 252 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 static void printBootUpMessage(Stream &stream)
 {
   stream.println("** " "Project Marien" " - " "1.0.0" " **");
@@ -292,7 +292,7 @@ void setGain(Adafruit_ADS1115 &device, uint8_t gain)
  * Callback from Config.reset(), used to override default values.
 
  */
-# 304 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 304 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onConfigReset(void)
 {
 
@@ -323,11 +323,11 @@ void onConfigReset(void)
 
 
 
-  params._defaultMeasurementInterval = 1000;
+  params._defaultMeasurementInterval = 5000;
 
 
 
-  params._defaultNumberOfMeasurements = 1;
+  params._defaultNumberOfMeasurements = 10;
 
 
 
@@ -376,7 +376,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 396 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 396 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 /**
@@ -384,7 +384,7 @@ void onConfigReset(void)
  * Shows and handles the boot up commands.
 
  */
-# 401 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 401 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void handleBootUpCommands()
 {
   do
@@ -409,6 +409,16 @@ void publishSettings()
   imeiCode = modem.getIMEI();
   ICCID = modem.getICCID();
 
+  strcpy(sendBuffer, "{");
+  strcat(sendBuffer, "\"Type\":");
+  strcat(sendBuffer, "\"Settings\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"DeviceName\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, deviceId.c_str());
+  strcat(sendBuffer,"\"");
+
+  strcat(sendBuffer, "}");
   jsonMessage += "{";
   jsonMessage += "\"Type\":";
   jsonMessage += "\"Settings\"";
@@ -540,7 +550,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 554 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 564 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages)
 {
   // sodaq_wdt_disable();
@@ -549,7 +559,6 @@ void publishMessage(DataRecord records[], int numberOfMessages)
 
   /* Send all message in the array record to azure. */
   unsigned long timeStamp = getTime();
-  String jsonMessage;
   String endPoint;
   String jsonString;
   String deviceId;
@@ -624,95 +633,101 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   SerialUSB.print("Name of device:");
   SerialUSB.println(deviceId);
 
-  jsonMessage += "{";
-  jsonMessage += "\"Type\":";
-  jsonMessage += "\"Data\"";
-  jsonMessage += ",";
-  jsonMessage += "\"DeviceName\":";
-  jsonMessage += "\"";
-  jsonMessage += deviceId;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"Timestamp\":";
-  jsonMessage += getTime();
+  strcpy(sendBuffer, "{");
+  strcat(sendBuffer, "\"Type\":");
+  strcat(sendBuffer, "\"Data\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"DeviceName\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, deviceId.c_str());
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer,"," );
+  strcat(sendBuffer, "\"Timestamp\":");
+  strcat(sendBuffer, String(getTime()).c_str() );
 
   if (strlen(params._p1_1) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_1;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P1 / numberOfMessages) * getMultiplier(0);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_1).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P1 / numberOfMessages) * getMultiplier(0)).c_str());
+
   }
 
   if (strlen(params._p1_2) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_2;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P2 / numberOfMessages) * getMultiplier(1);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_2).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P2 / numberOfMessages) * getMultiplier(1)).c_str());
+
   }
 
   if (strlen(params._p1_3) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_3;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P3 / numberOfMessages) * getMultiplier(2);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_3).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P3 / numberOfMessages) * getMultiplier(2)).c_str());
   }
 
   if (strlen(params._p1_4) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_4;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P4 / numberOfMessages) * getMultiplier(3);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_4).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P4 / numberOfMessages) * getMultiplier(3)).c_str());
+
   }
 
   if (strlen(params._p2_1) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_1;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P5 / numberOfMessages) * getMultiplier(4);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_1).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P5 / numberOfMessages) * getMultiplier(4)).c_str());
   }
 
   if (strlen(params._p2_2) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_2;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P6 / numberOfMessages) * getMultiplier(5);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_2).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P6 / numberOfMessages) * getMultiplier(5)).c_str());
   }
 
   if (strlen(params._p2_3) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_3;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P7 / numberOfMessages) * getMultiplier(6);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_3).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P7 / numberOfMessages) * getMultiplier(6)).c_str());
   }
 
   if (strlen(params._p2_4) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_4;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P8 / numberOfMessages) * getMultiplier(7);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_4).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P8 / numberOfMessages) * getMultiplier(7)).c_str());
   }
 
-  jsonMessage += "}";
+  strcat(sendBuffer, "}");
+
+  SerialUSB.println("New Format");
+  SerialUSB.println(sendBuffer);
 
   SerialUSB.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
-  mqttClient.print(jsonMessage);
+  mqttClient.print(sendBuffer);
   mqttClient.endMessage();
   SerialUSB.println("End sending data");
 }
@@ -726,8 +741,8 @@ void connectMQTT()
   endPoint += DeviceName;
   endPoint += "/messages/devicebound/#";
 
-  SerialUSB.println("WDT save delay in connectMQTT");
-  sodaq_wdt_safe_delay(8000);
+  SerialUSB.println("Disable WDT");
+  sodaq_wdt_disable();
 
   strcpy(_mqttEndpoint, MQTTBroker.c_str());
   SerialUSB.print("Attempting to MQTT broker: ");
@@ -751,6 +766,8 @@ void connectMQTT()
   SerialUSB.print("Device is listening to endPoint :");
   SerialUSB.println(endPoint);
   mqttClient.subscribe(endPoint);
+  SerialUSB.println("Enble WDT");
+  sodaq_wdt_enable(WDT_PERIOD_8X);
 }
 
 /* Lees de datauit van de methaan sensor. Omdat nog niet duidelijk hoe dit wordt gedaan wordt er hier een random getal genomen tussen de 0 en 10000. */
@@ -831,7 +848,7 @@ void getSensorData(DataRecord *record)
  * Set variables from Azure.
 
  */
-# 840 "c:\\Marien\\Sources\\Arduino\\Arduino.ino"
+# 857 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 
@@ -938,6 +955,9 @@ void connectNB()
 {
   SerialUSB.println("Attempting to connect to the cellular network");
 
+  SerialUSB.println("Disable WDT");
+  sodaq_wdt_disable();
+
   while ((nbAccess.begin(params._pinnumber, params._apn, true) != NB_READY) ||
          (gprs.attachGPRS() != GPRS_READY))
   {
@@ -946,8 +966,13 @@ void connectNB()
     delay(1000);
   }
 
+  SerialUSB.println("Enble WDT");
+  sodaq_wdt_enable(WDT_PERIOD_8X);
+
   SerialUSB.println("You're connected to the cellular network");
   SerialUSB.println();
+
+
 }
 
 void setupModem()
@@ -1018,4 +1043,11 @@ void setupModem()
   MODEM.sendf("AT+COPS=1,2,\"20408\"");
   MODEM.waitForResponse(2000, &response);
   SerialUSB.println("done.");
+}
+
+char stringTochar(String s)
+{
+  char arr[12];
+  s.toCharArray(arr, sizeof(arr));
+  return atol(arr);
 }

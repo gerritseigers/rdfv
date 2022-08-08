@@ -1,4 +1,4 @@
-c:\Marien\Sources\output\libraries\ArduinoBearSSL\bearssl\dig_oid.c.o: \
+c:\Projects\rdfv\output\libraries\ArduinoBearSSL\bearssl\dig_oid.c.o: \
  C:\Arduino15\libraries\ArduinoBearSSL\src\bearssl\dig_oid.c \
  C:\Arduino15\libraries\ArduinoBearSSL\src\bearssl\inner.h \
  C:\Arduino15\libraries\ArduinoBearSSL\src\bearssl\config.h \

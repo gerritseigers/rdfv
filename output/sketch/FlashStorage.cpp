@@ -1,4 +1,4 @@
-#line 1 "c:\\Marien\\Sources\\Arduino\\FlashStorage.cpp"
+#line 1 "c:\\Projects\\rdfv\\Arduino\\FlashStorage.cpp"
 #include "FlashStorage.h"
 
 static const uint32_t pageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };

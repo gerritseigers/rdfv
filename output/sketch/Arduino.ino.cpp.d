@@ -1,5 +1,5 @@
-c:\Marien\Sources\output\sketch\Arduino.ino.cpp.o: \
- c:\Marien\Sources\output\sketch\Arduino.ino.cpp \
+c:\Projects\rdfv\output\sketch\Arduino.ino.cpp.o: \
+ c:\Projects\rdfv\output\sketch\Arduino.ino.cpp \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/Arduino.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/ArduinoAPI.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/Binary.h \
@@ -144,11 +144,11 @@ c:\Marien\Sources\output\sketch\Arduino.ino.cpp.o: \
  C:\Arduino15\libraries\Adafruit_ADS1X15/Adafruit_ADS1015.h \
  C:\Arduino15\libraries\MKRNB\src/Modem.h \
  C:\Arduino15\libraries\ArduinoECCX08\src/utility/ECCX08SelfSignedCert.h \
- c:\Marien\Sources\output\sketch\iot_configs.h \
- c:\Marien\Sources\output\sketch\Params.h \
- c:\Marien\Sources\output\sketch\BootMenu.h \
- c:\Marien\Sources\output\sketch\DataRecord.h \
- c:\Marien\Sources\output\sketch\Sodaq_wdt.h \
+ c:\Projects\rdfv\output\sketch\iot_configs.h \
+ c:\Projects\rdfv\output\sketch\Params.h \
+ c:\Projects\rdfv\output\sketch\BootMenu.h \
+ c:\Projects\rdfv\output\sketch\DataRecord.h \
+ c:\Projects\rdfv\output\sketch\Sodaq_wdt.h \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson.h \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson.hpp \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson/Configuration.hpp

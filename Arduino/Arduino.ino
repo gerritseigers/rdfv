@@ -23,8 +23,8 @@
 #define CONSOLE_STREAM SerialUSB
 
 #define MAX_NUMBER_OF_MEASUREMENTS 10 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 1000
-#define DEFAULT_NUMBER_OF_MEASUREMENTS 1
+#define DEFAULT_MEASUREMENT_INTERVAL 5000
+#define DEFAULT_NUMBER_OF_MEASUREMENTS 10
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
@@ -68,7 +68,7 @@ String IMEI = "";
 String DeviceName = ""; //
 String MQTTBroker = "";
 String Error = "";
-
+char sendBuffer[500];
 DataRecord measurements[MAX_NUMBER_OF_MEASUREMENTS];
 int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
@@ -184,14 +184,14 @@ void setup()
 
   if (params._useADC1 == true)
   {
-    Serial.print("Setting gain for ADC1");
+    Serial.print("Setting gain for ADC1 :");
     Serial.println(params._gain_1);
     setGain(ads1115_48, params._gain_1);
   }
 
   if (params._useADC2 == true)
   {
-    Serial.print("Setting gain for ADC2");
+    Serial.print("Setting gain for ADC2 :");
     Serial.println(params._gain_2);  
     setGain(ads1115_49, params._gain_2);
   }
@@ -230,13 +230,13 @@ void loop()
 
   if (measurementPointer >= params._defaultNumberOfMeasurements)
   {
-
     Serial.println("WDT save delay (8000) in loop just before publishMessage");
-    sodaq_wdt_safe_delay(8000);
     mqttClient.poll();
     publishMessage(measurements, measurementPointer);
     measurementPointer = 0;
   }
+  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
+
   // Reset the pointer
 }
 
@@ -422,6 +422,16 @@ void publishSettings()
   imeiCode = modem.getIMEI();
   ICCID = modem.getICCID();
 
+  strcpy(sendBuffer, "{");
+  strcat(sendBuffer, "\"Type\":");
+  strcat(sendBuffer, "\"Settings\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"DeviceName\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, deviceId.c_str());
+  strcat(sendBuffer,"\"");
+
+  strcat(sendBuffer, "}");
   jsonMessage += "{";
   jsonMessage += "\"Type\":";
   jsonMessage += "\"Settings\"";
@@ -559,7 +569,6 @@ void publishMessage(DataRecord records[], int numberOfMessages)
 
   /* Send all message in the array record to azure. */
   unsigned long timeStamp = getTime();
-  String jsonMessage;
   String endPoint;
   String jsonString;
   String deviceId;
@@ -634,95 +643,101 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   Serial.print("Name of device:");
   Serial.println(deviceId);
 
-  jsonMessage += "{";
-  jsonMessage += "\"Type\":";
-  jsonMessage += "\"Data\"";
-  jsonMessage += ",";
-  jsonMessage += "\"DeviceName\":";
-  jsonMessage += "\"";
-  jsonMessage += deviceId;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"Timestamp\":";
-  jsonMessage += getTime();
+  strcpy(sendBuffer, "{");
+  strcat(sendBuffer, "\"Type\":");
+  strcat(sendBuffer, "\"Data\"");
+  strcat(sendBuffer, ",");
+  strcat(sendBuffer, "\"DeviceName\":");
+  strcat(sendBuffer, "\"");
+  strcat(sendBuffer, deviceId.c_str());
+  strcat(sendBuffer,"\"");
+  strcat(sendBuffer,"," );
+  strcat(sendBuffer, "\"Timestamp\":");
+  strcat(sendBuffer, String(getTime()).c_str() );
 
   if (strlen(params._p1_1) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_1;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P1 / numberOfMessages) * getMultiplier(0);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_1).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P1 / numberOfMessages) * getMultiplier(0)).c_str());
+
   }
 
   if (strlen(params._p1_2) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_2;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P2 / numberOfMessages) * getMultiplier(1);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_2).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P2 / numberOfMessages) * getMultiplier(1)).c_str());
+
   }
 
   if (strlen(params._p1_3) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_3;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P3 / numberOfMessages) * getMultiplier(2);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_3).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P3 / numberOfMessages) * getMultiplier(2)).c_str());
   }
 
   if (strlen(params._p1_4) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p1_4;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P4 / numberOfMessages) * getMultiplier(3);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p1_4).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P4 / numberOfMessages) * getMultiplier(3)).c_str());
+
   }
 
   if (strlen(params._p2_1) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_1;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P5 / numberOfMessages) * getMultiplier(4);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_1).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P5 / numberOfMessages) * getMultiplier(4)).c_str());
   }
 
   if (strlen(params._p2_2) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_2;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P6 / numberOfMessages) * getMultiplier(5);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_2).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P6 / numberOfMessages) * getMultiplier(5)).c_str());
   }
 
   if (strlen(params._p2_3) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_3;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P7 / numberOfMessages) * getMultiplier(6);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_3).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P7 / numberOfMessages) * getMultiplier(6)).c_str());
   }
 
   if (strlen(params._p2_4) > 0)
   {
-    jsonMessage += ",";
-    jsonMessage += "\"";
-    jsonMessage += params._p2_4;
-    jsonMessage += "\":";
-    jsonMessage += (Total_P8 / numberOfMessages) * getMultiplier(7);
+    strcat(sendBuffer,",");
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer, String(params._p2_4).c_str());
+    strcat(sendBuffer,"\":");
+    strcat(sendBuffer, String((Total_P8 / numberOfMessages) * getMultiplier(7)).c_str());
   }
 
-  jsonMessage += "}";
+  strcat(sendBuffer, "}");
+
+  Serial.println("New Format");
+  Serial.println(sendBuffer);
 
   Serial.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
-  mqttClient.print(jsonMessage);
+  mqttClient.print(sendBuffer);
   mqttClient.endMessage();
   Serial.println("End sending data");
 }
@@ -736,8 +751,8 @@ void connectMQTT()
   endPoint += DeviceName;
   endPoint += "/messages/devicebound/#";
 
-  Serial.println("WDT save delay in connectMQTT");
-  sodaq_wdt_safe_delay(8000);
+  Serial.println("Disable WDT");
+  sodaq_wdt_disable();
 
   strcpy(_mqttEndpoint, MQTTBroker.c_str());
   Serial.print("Attempting to MQTT broker: ");
@@ -761,6 +776,8 @@ void connectMQTT()
   Serial.print("Device is listening to endPoint :");
   Serial.println(endPoint);
   mqttClient.subscribe(endPoint);
+  Serial.println("Enble WDT");
+  sodaq_wdt_enable(WDT_PERIOD_8X);
 }
 
 /* Lees de datauit van de methaan sensor. Omdat nog niet duidelijk hoe dit wordt gedaan wordt er hier een random getal genomen tussen de 0 en 10000. */
@@ -943,6 +960,9 @@ void connectNB()
 {
   Serial.println("Attempting to connect to the cellular network");
 
+  Serial.println("Disable WDT");
+  sodaq_wdt_disable();
+
   while ((nbAccess.begin(params._pinnumber, params._apn, true) != NB_READY) ||
          (gprs.attachGPRS() != GPRS_READY))
   {
@@ -951,8 +971,13 @@ void connectNB()
     delay(1000);
   }
 
+  Serial.println("Enble WDT");
+  sodaq_wdt_enable(WDT_PERIOD_8X);
+
   Serial.println("You're connected to the cellular network");
   Serial.println();
+
+  
 }
 
 void setupModem()
@@ -1023,4 +1048,11 @@ void setupModem()
   MODEM.sendf("AT+COPS=1,2,\"20408\"");
   MODEM.waitForResponse(2000, &response);
   Serial.println("done.");
+}
+
+char stringTochar(String s)
+{
+  char arr[12];
+  s.toCharArray(arr, sizeof(arr));
+  return atol(arr);
 }
