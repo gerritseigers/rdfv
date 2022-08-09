@@ -14,5 +14,7 @@ namespace Wur.RDFV.Core.ViewModels
 		public int Buffer { get; set; }
 		public int Interval { get; set; }
 		public int Repeats {get; set; }
+		public string? LastResetCause { get; set; }
+		public string? ICCID {get;set;}
 	}
 }

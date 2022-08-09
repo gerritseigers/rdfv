@@ -24,14 +24,14 @@
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
-#define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 10000
+#define MAX_NUMBER_OF_MEASUREMENTS 10 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
+#define DEFAULT_MEASUREMENT_INTERVAL 1000
 #define DEFAULT_NUMBER_OF_MEASUREMENTS 5
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072204" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072205" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -119,15 +119,15 @@ void loop();
 void setGain(Adafruit_ADS1115 &device, uint8_t gain);
 #line 412 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 541 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 544 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages);
-#line 765 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 766 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData(DataRecord *record);
-#line 838 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 839 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 929 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 930 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1034 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1035 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
 #line 112 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
@@ -469,6 +469,9 @@ void publishSettings()
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"Interval\":");
   strcat(sendBuffer, String(params._defaultMeasurementInterval).c_str() );
+  strcat(sendBuffer,"," );
+  strcat(sendBuffer, "\"LastResetCause\":");
+  strcat(sendBuffer, String(lastResetCause).c_str() );
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"Repeats\":");
   strcat(sendBuffer, String(params._defaultRepeats).c_str() );
@@ -653,9 +656,7 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
-  strcat(sendBuffer,"," );
-  strcat(sendBuffer, "\"LastResetCause\":");
-  strcat(sendBuffer, String(lastResetCause).c_str() );
+
 
   if (strlen(params._p1_1) > 0)
   {

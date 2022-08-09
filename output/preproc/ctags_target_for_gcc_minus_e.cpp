@@ -55,7 +55,7 @@ String DeviceName = ""; //
 String MQTTBroker = "";
 String Error = "";
 char sendBuffer[500];
-DataRecord measurements[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
+DataRecord measurements[10 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
 int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
 GPRS gprs;
@@ -303,7 +303,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072204" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072205" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -323,7 +323,7 @@ void onConfigReset(void)
 
 
 
-  params._defaultMeasurementInterval = 10000;
+  params._defaultMeasurementInterval = 1000;
 
 
 
@@ -435,6 +435,9 @@ void publishSettings()
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"Interval\":");
   strcat(sendBuffer, String(params._defaultMeasurementInterval).c_str() );
+  strcat(sendBuffer,"," );
+  strcat(sendBuffer, "\"LastResetCause\":");
+  strcat(sendBuffer, String(lastResetCause).c_str() );
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"Repeats\":");
   strcat(sendBuffer, String(params._defaultRepeats).c_str() );
@@ -527,7 +530,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 541 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 544 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages)
 {
   // sodaq_wdt_disable();
@@ -622,9 +625,7 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
-  strcat(sendBuffer,"," );
-  strcat(sendBuffer, "\"LastResetCause\":");
-  strcat(sendBuffer, String(lastResetCause).c_str() );
+
 
   if (strlen(params._p1_1) > 0)
   {
@@ -829,7 +830,7 @@ void getSensorData(DataRecord *record)
  * Set variables from Azure.
 
  */
-# 838 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 839 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 
