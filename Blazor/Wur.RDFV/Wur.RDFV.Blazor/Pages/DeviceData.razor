@@ -13,8 +13,7 @@ else
     </div>
     <hr/>
     <div class="row">
-        <div class="col-2">Measurement time:</div>
-        <div class="col-2">@lastValueRead.TimeStamp</div>
+        <div>Measurement time:@lastValueRead.TimeStamp</div>
     </div>
     <hr />
     <div class="row">
@@ -42,10 +41,11 @@ else
     </div>
     
     <div class="row">
-      <RadzenChart>
-          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" Title="Temperature" LineType="LineType.Solid" ValueProperty="TEMP" Stroke="#333333" Fill="#D5D2CA">
+      <RadzenChart  style="width: 100%" >
+          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Solid" ValueProperty="TEMP" Stroke="#333333" Fill="#6AADE4">
 		     <RadzenMarkers MarkerType="MarkerType.Triangle" Size="3" Fill="#333333" />
 		</RadzenAreaSeries>
+        <RadzenLegend Visible="false" />
 		<RadzenCategoryAxis Padding="20" />
 		<RadzenValueAxis Min="0" Max="1000" Step="100">
 			<RadzenGridLines Visible="true" />
@@ -55,10 +55,11 @@ else
     </div>
 
        <div class="row">
-      <RadzenChart>
-          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" Title="Humidity" LineType="LineType.Solid" ValueProperty="HUM" Stroke="#333333" Fill="#D5D2CA">
+      <RadzenChart style="width: 100%">
+          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Solid" ValueProperty="HUM" Stroke="#333333" Fill="#FF7900">
 		     <RadzenMarkers MarkerType="MarkerType.Triangle" Size="3" Fill="#333333" />
 		</RadzenAreaSeries>
+        <RadzenLegend Visible="false" />
 		<RadzenCategoryAxis Padding="20" />
 		<RadzenValueAxis Min="0" Max="1000" Step="100">
 			<RadzenGridLines Visible="true" />
@@ -68,12 +69,13 @@ else
     </div>
 
        <div class="row">
-      <RadzenChart>
-          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" Title="CO2" LineType="LineType.Solid" ValueProperty="CO2" Stroke="#333333" Fill="#D5D2CA">
+      <RadzenChart style="width: 100%">
+          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Solid" ValueProperty="CO2" Stroke="#333333" Fill="#D5D2CA">
 		     <RadzenMarkers MarkerType="MarkerType.Triangle" Size="3" Fill="#333333" />
 		</RadzenAreaSeries>
+        <RadzenLegend Visible="false" />
 		<RadzenCategoryAxis Padding="20" />
-		<RadzenValueAxis Min="0" Max="2000" Step="100">
+		<RadzenValueAxis Min="0" Max="2000" Step="200">
 			<RadzenGridLines Visible="true" />
 			<RadzenAxisTitle Text="CO2 (Mv)" />
 		</RadzenValueAxis>
@@ -81,14 +83,15 @@ else
     </div>
 
        <div class="row">
-      <RadzenChart>
-          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" Title="Temperature" LineType="LineType.Solid" ValueProperty="NH3" Stroke="#333333" Fill="#D5D2CA">
+      <RadzenChart style="width: 100%">
+          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Solid" ValueProperty="NH3" Stroke="#333333" Fill="#005172">
 		     <RadzenMarkers MarkerType="MarkerType.Triangle" Size="3" Fill="#333333" />
 		</RadzenAreaSeries>
+        <RadzenLegend Visible="false" /> 
 		<RadzenCategoryAxis Padding="20" />
 		<RadzenValueAxis Min="0" Max="1000" Step="100">
 			<RadzenGridLines Visible="true" />
-			<RadzenAxisTitle Text="NH3 (Mv)" />
+			<RadzenAxisTitle Text="NH3" />
 		</RadzenValueAxis>
       </RadzenChart>
     </div>

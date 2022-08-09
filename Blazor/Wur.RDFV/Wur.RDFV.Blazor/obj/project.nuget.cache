@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "bVTqfTAee03NGHbEEkRmGhnPPZqXMLEuj3tD33+BHdRG55spIt+mzj4nvY9sUG+9/OPporBk4s7tA3wNaPz7sw==",
+  "dgSpecHash": "EJi2Vh2uN1CYAo0dSNKHWPMPEE8pSzmL327noGygzBdsGR+sUBdDTYSKoP+JKT8quj9rRoL4hs6jaexLShzBlg==",
   "success": true,
-  "projectFilePath": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\Wur.RDFV.Blazor.csproj",
+  "projectFilePath": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\Wur.RDFV.Blazor.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\seige001\\.nuget\\packages\\azure.core\\1.24.0\\azure.core.1.24.0.nupkg.sha512",
     "C:\\Users\\seige001\\.nuget\\packages\\azure.storage.blobs\\12.12.0\\azure.storage.blobs.12.12.0.nupkg.sha512",

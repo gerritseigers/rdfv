@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "P2wyv/BLsWCAkAHSHfd+vzBFd/BXaygyystpdSvfYgI=",
+  "Hash": "HqX8faPmETyzYTtoha0nPKdCICR06Ia6m+0sKMr29Uo=",
   "Source": "Wur.RDFV.Blazor",
   "BasePath": "_content/Wur.RDFV.Blazor",
   "Mode": "Default",
@@ -10,17 +10,17 @@
     {
       "Name": "Wur.RDFV.Blazor\\wwwroot",
       "Source": "Wur.RDFV.Blazor",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\bundle\\Wur.RDFV.Blazor.styles.css",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\bundle\\Wur.RDFV.Blazor.styles.css",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\bundle\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\bundle\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "Wur.RDFV.Blazor.styles.css",
       "AssetKind": "All",
@@ -31,13 +31,13 @@
       "AssetTraitValue": "ApplicationBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\bundle\\Wur.RDFV.Blazor.styles.css"
+      "OriginalItemSpec": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\bundle\\Wur.RDFV.Blazor.styles.css"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\Wur.RDFV.Blazor.bundle.scp.css",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\Wur.RDFV.Blazor.bundle.scp.css",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Computed",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "Wur.RDFV.Blazor.bundle.scp.css",
       "AssetKind": "All",
@@ -48,13 +48,13 @@
       "AssetTraitValue": "ProjectBundle",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\Wur.RDFV.Blazor.bundle.scp.css"
+      "OriginalItemSpec": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\obj\\Release\\net6.0\\scopedcss\\projectbundle\\Wur.RDFV.Blazor.bundle.scp.css"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/bootstrap/bootstrap.min.css",
       "AssetKind": "All",
@@ -68,10 +68,10 @@
       "OriginalItemSpec": "wwwroot\\css\\bootstrap\\bootstrap.min.css"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/bootstrap/bootstrap.min.css.map",
       "AssetKind": "All",
@@ -85,10 +85,10 @@
       "OriginalItemSpec": "wwwroot\\css\\bootstrap\\bootstrap.min.css.map"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\css\\open-iconic-bootstrap.min.css",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\css\\open-iconic-bootstrap.min.css",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/font/css/open-iconic-bootstrap.min.css",
       "AssetKind": "All",
@@ -102,10 +102,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\css\\open-iconic-bootstrap.min.css"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.eot",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.eot",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/font/fonts/open-iconic.eot",
       "AssetKind": "All",
@@ -119,10 +119,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.eot"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.otf",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.otf",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/font/fonts/open-iconic.otf",
       "AssetKind": "All",
@@ -136,10 +136,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.otf"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.svg",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.svg",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/font/fonts/open-iconic.svg",
       "AssetKind": "All",
@@ -153,10 +153,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.svg"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.ttf",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.ttf",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/font/fonts/open-iconic.ttf",
       "AssetKind": "All",
@@ -170,10 +170,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.ttf"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.woff",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.woff",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/font/fonts/open-iconic.woff",
       "AssetKind": "All",
@@ -187,10 +187,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\font\\fonts\\open-iconic.woff"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\FONT-LICENSE",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\FONT-LICENSE",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/FONT-LICENSE",
       "AssetKind": "All",
@@ -204,10 +204,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\FONT-LICENSE"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\ICON-LICENSE",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\ICON-LICENSE",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/ICON-LICENSE",
       "AssetKind": "All",
@@ -221,10 +221,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\ICON-LICENSE"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\README.md",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\open-iconic\\README.md",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/open-iconic/README.md",
       "AssetKind": "All",
@@ -238,10 +238,10 @@
       "OriginalItemSpec": "wwwroot\\css\\open-iconic\\README.md"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\site.css",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\css\\site.css",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "css/site.css",
       "AssetKind": "All",
@@ -255,10 +255,10 @@
       "OriginalItemSpec": "wwwroot\\css\\site.css"
     },
     {
-      "Identity": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\favicon.ico",
+      "Identity": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\favicon.ico",
       "SourceId": "Wur.RDFV.Blazor",
       "SourceType": "Discovered",
-      "ContentRoot": "C:\\Marien\\Sources\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
+      "ContentRoot": "C:\\Projects\\rdfv\\Blazor\\Wur.RDFV\\Wur.RDFV.Blazor\\wwwroot\\",
       "BasePath": "_content/Wur.RDFV.Blazor",
       "RelativePath": "favicon.ico",
       "AssetKind": "All",

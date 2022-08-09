@@ -323,11 +323,11 @@ void onConfigReset(void)
 
 
 
-  params._defaultMeasurementInterval = 5000;
+  params._defaultMeasurementInterval = 2000;
 
 
 
-  params._defaultNumberOfMeasurements = 10;
+  params._defaultNumberOfMeasurements = 1;
 
 
 
@@ -400,7 +400,6 @@ void publishSettings()
 {
   unsigned long timeStamp = getTime();
   String endPoint;
-  String jsonMessage;
   String deviceId;
   String imeiCode = "";
   String ICCID = "";
@@ -441,57 +440,13 @@ void publishSettings()
   strcat(sendBuffer, String(params._defaultRepeats).c_str() );
   strcat(sendBuffer, "}");
 
-  jsonMessage += "{";
-  jsonMessage += "\"Type\":";
-  jsonMessage += "\"Settings\"";
-  jsonMessage += ",";
-  jsonMessage += "\"DeviceName\":";
-  jsonMessage += "\"";
-  jsonMessage += deviceId;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"IMeiCode\":";
-  jsonMessage += "\"";
-  jsonMessage += imeiCode;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"ICCID\":";
-  jsonMessage += "\"";
-  jsonMessage += ICCID;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"Timestamp\":";
-  jsonMessage += getTime();
-  jsonMessage += ",";
-  jsonMessage += "\"Buffer\":";
-  jsonMessage += params._defaultNumberOfMeasurements;
-  jsonMessage += ",";
-  jsonMessage += "\"Interval\":";
-  jsonMessage += params._defaultMeasurementInterval;
-  jsonMessage += ",";
-  jsonMessage += "\"Repeats\":";
-  jsonMessage += params._defaultRepeats;
-  jsonMessage += "}";
-
-  StaticJsonDocument<512> doc;
-  doc["Type"] = "Settings";
-  // doc["Timestamp"] = getTime();
-  doc["DeviceName"] = params.getDeviceName();
-
-  doc["Buffer"] = params._defaultNumberOfMeasurements;
-  doc["Interval"] = params._defaultMeasurementInterval;
-  doc["Repeats"] = params._defaultRepeats;
-
-  serializeJson(doc, SerialUSB);
-  SerialUSB.println();
-
-  long l = (unsigned long)measureJson(doc);
-  SerialUSB.println("Lenght of document");
-  SerialUSB.println(l);
+  SerialUSB.println('=============================================================');
+  SerialUSB.println('New Json');
+  SerialUSB.println(sendBuffer);
 
   SerialUSB.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
-  mqttClient.print(jsonMessage);
+  mqttClient.print(sendBuffer);
   mqttClient.endMessage();
   SerialUSB.println("End sending data");
 }
@@ -572,7 +527,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 586 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 541 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages)
 {
   // sodaq_wdt_disable();
@@ -580,6 +535,7 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   /* Defintions of the multipliers */
 
   /* Send all message in the array record to azure. */
+
   unsigned long timeStamp = getTime();
   String endPoint;
   String jsonString;
@@ -870,7 +826,7 @@ void getSensorData(DataRecord *record)
  * Set variables from Azure.
 
  */
-# 879 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 835 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 

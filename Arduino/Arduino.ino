@@ -23,8 +23,8 @@
 #define CONSOLE_STREAM SerialUSB
 
 #define MAX_NUMBER_OF_MEASUREMENTS 10 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 5000
-#define DEFAULT_NUMBER_OF_MEASUREMENTS 10
+#define DEFAULT_MEASUREMENT_INTERVAL 2000
+#define DEFAULT_NUMBER_OF_MEASUREMENTS 1
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
@@ -413,7 +413,6 @@ void publishSettings()
 {
   unsigned long timeStamp = getTime();
   String endPoint;
-  String jsonMessage;
   String deviceId;
   String imeiCode = "";
   String ICCID = "";
@@ -454,57 +453,13 @@ void publishSettings()
   strcat(sendBuffer, String(params._defaultRepeats).c_str() );
   strcat(sendBuffer, "}");
   
-  jsonMessage += "{";
-  jsonMessage += "\"Type\":";
-  jsonMessage += "\"Settings\"";
-  jsonMessage += ",";
-  jsonMessage += "\"DeviceName\":";
-  jsonMessage += "\"";
-  jsonMessage += deviceId;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"IMeiCode\":";
-  jsonMessage += "\"";
-  jsonMessage += imeiCode;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"ICCID\":";
-  jsonMessage += "\"";
-  jsonMessage += ICCID;
-  jsonMessage += "\"";
-  jsonMessage += ",";
-  jsonMessage += "\"Timestamp\":";
-  jsonMessage += getTime();
-  jsonMessage += ",";
-  jsonMessage += "\"Buffer\":";
-  jsonMessage += params._defaultNumberOfMeasurements;
-  jsonMessage += ",";
-  jsonMessage += "\"Interval\":";
-  jsonMessage += params._defaultMeasurementInterval;
-  jsonMessage += ",";
-  jsonMessage += "\"Repeats\":";
-  jsonMessage += params._defaultRepeats;
-  jsonMessage += "}";
-
-  StaticJsonDocument<512> doc;
-  doc["Type"] = "Settings";
-  // doc["Timestamp"] = getTime();
-  doc["DeviceName"] = params.getDeviceName();
-
-  doc["Buffer"] = params._defaultNumberOfMeasurements;
-  doc["Interval"] = params._defaultMeasurementInterval;
-  doc["Repeats"] = params._defaultRepeats;
-
-  serializeJson(doc, Serial);
-  Serial.println();
-
-  long l = (unsigned long)measureJson(doc);
-  Serial.println("Lenght of document");
-  Serial.println(l);
+  Serial.println('============================================================='); 
+  Serial.println('New Json');
+  Serial.println(sendBuffer);
 
   Serial.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
-  mqttClient.print(jsonMessage);
+  mqttClient.print(sendBuffer);
   mqttClient.endMessage();
   Serial.println("End sending data");
 }
@@ -590,6 +545,7 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   /* Defintions of the multipliers */
 
   /* Send all message in the array record to azure. */
+
   unsigned long timeStamp = getTime();
   String endPoint;
   String jsonString;
