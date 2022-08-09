@@ -24,9 +24,9 @@
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
-#define MAX_NUMBER_OF_MEASUREMENTS 10 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 2000
-#define DEFAULT_NUMBER_OF_MEASUREMENTS 1
+#define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
+#define DEFAULT_MEASUREMENT_INTERVAL 10000
+#define DEFAULT_NUMBER_OF_MEASUREMENTS 5
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
@@ -121,13 +121,13 @@ void setGain(Adafruit_ADS1115 &device, uint8_t gain);
 void publishSettings();
 #line 541 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages);
-#line 762 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 765 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData(DataRecord *record);
-#line 835 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 838 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 926 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 929 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1031 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1034 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
 #line 112 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
@@ -653,6 +653,9 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
+  strcat(sendBuffer,"," );
+  strcat(sendBuffer, "\"LastResetCause\":");
+  strcat(sendBuffer, String(lastResetCause).c_str() );
 
   if (strlen(params._p1_1) > 0)
   {

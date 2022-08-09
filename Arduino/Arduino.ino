@@ -22,9 +22,9 @@
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
-#define MAX_NUMBER_OF_MEASUREMENTS 10 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 2000
-#define DEFAULT_NUMBER_OF_MEASUREMENTS 1
+#define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
+#define DEFAULT_MEASUREMENT_INTERVAL 10000
+#define DEFAULT_NUMBER_OF_MEASUREMENTS 5
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
@@ -632,6 +632,9 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
+  strcat(sendBuffer,"," );
+  strcat(sendBuffer, "\"LastResetCause\":");
+  strcat(sendBuffer, String(lastResetCause).c_str() );
 
   if (strlen(params._p1_1) > 0)
   {
