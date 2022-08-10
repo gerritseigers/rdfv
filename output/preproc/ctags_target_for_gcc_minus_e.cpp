@@ -55,7 +55,7 @@ String DeviceName = ""; //
 String MQTTBroker = "";
 String Error = "";
 char sendBuffer[500];
-DataRecord measurements[10 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
+DataRecord measurements[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
 int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
 GPRS gprs;
@@ -205,6 +205,7 @@ void loop()
 
   blinkLed(2);
   SerialUSB.println("Device is registred. Starting measurements now.");
+  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
   getSensorData(&measurements[measurementPointer++]);
 
   // If the current measurementPointer is greater od equal then the buffer then send the data toi Azure.
@@ -221,7 +222,7 @@ void loop()
     publishMessage(measurements, measurementPointer);
     measurementPointer = 0;
   }
-  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
+
 
   // Reset the pointer
 }
@@ -237,7 +238,7 @@ unsigned long getTime()
  * Prints a boot-up message that includes project name, version and Cpu reset cause.
 
  */
-# 252 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 253 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 static void printBootUpMessage(Stream &stream)
 {
   stream.println("** " "Project Marien" " - " "1.0.0" " **");
@@ -292,7 +293,7 @@ void setGain(Adafruit_ADS1115 &device, uint8_t gain)
  * Callback from Config.reset(), used to override default values.
 
  */
-# 304 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 305 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onConfigReset(void)
 {
 
@@ -303,7 +304,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072205" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072203" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -323,11 +324,11 @@ void onConfigReset(void)
 
 
 
-  params._defaultMeasurementInterval = 1000;
+  params._defaultMeasurementInterval = 60000;
 
 
 
-  params._defaultNumberOfMeasurements = 5;
+  params._defaultNumberOfMeasurements = 1;
 
 
 
@@ -376,7 +377,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 396 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 397 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 /**
@@ -384,7 +385,7 @@ void onConfigReset(void)
  * Shows and handles the boot up commands.
 
  */
-# 401 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 402 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void handleBootUpCommands()
 {
   do
@@ -530,7 +531,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 544 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 545 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage(DataRecord records[], int numberOfMessages)
 {
   // sodaq_wdt_disable();
@@ -830,7 +831,7 @@ void getSensorData(DataRecord *record)
  * Set variables from Azure.
 
  */
-# 839 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 840 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 
@@ -868,7 +869,7 @@ void onMessageReceived(int messageSize)
       int interval = doc["Interval"] | -1;
       int repeats = doc["Repeats"] | -1;
 
-      if ((interval >= 100 && interval < 120000) && interval != -1)
+      if ((interval >= 100 && interval <= 120000) && interval != -1)
       {
         SerialUSB.print("Setting measurement interval to :");
         SerialUSB.print(interval);
@@ -876,7 +877,7 @@ void onMessageReceived(int messageSize)
         params._defaultMeasurementInterval = interval;
       }
 
-      if ((buffer > 0 && buffer <= 10) && buffer != -1)
+      if ((buffer > 0 && buffer <= 15) && buffer != -1)
       {
         SerialUSB.print("Setting buffer to :");
         SerialUSB.print(interval);

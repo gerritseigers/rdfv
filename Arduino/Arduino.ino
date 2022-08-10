@@ -22,14 +22,14 @@
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
-#define MAX_NUMBER_OF_MEASUREMENTS 10 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 1000
-#define DEFAULT_NUMBER_OF_MEASUREMENTS 5
+#define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
+#define DEFAULT_MEASUREMENT_INTERVAL 60000
+#define DEFAULT_NUMBER_OF_MEASUREMENTS 1
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072205" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072203" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -219,6 +219,7 @@ void loop()
 
   blinkLed(2);
   Serial.println("Device is registred. Starting measurements now.");
+  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
   getSensorData(&measurements[measurementPointer++]);
 
   // If the current measurementPointer is greater od equal then the buffer then send the data toi Azure.
@@ -235,7 +236,7 @@ void loop()
     publishMessage(measurements, measurementPointer);
     measurementPointer = 0;
   }
-  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
+
 
   // Reset the pointer
 }
@@ -873,7 +874,7 @@ void onMessageReceived(int messageSize)
       int interval = doc["Interval"] | -1;
       int repeats = doc["Repeats"] | -1;
 
-      if ((interval >= 100 && interval < 120000) && interval != -1)
+      if ((interval >= 100 && interval <= 120000) && interval != -1)
       {
         Serial.print("Setting measurement interval to :");
         Serial.print(interval);
@@ -881,7 +882,7 @@ void onMessageReceived(int messageSize)
         params._defaultMeasurementInterval = interval;
       }
 
-      if ((buffer > 0 && buffer <= 10) && buffer != -1)
+      if ((buffer > 0 && buffer <= 15) && buffer != -1)
       {
         Serial.print("Setting buffer to :");
         Serial.print(interval);
