@@ -23,13 +23,13 @@
 #define CONSOLE_STREAM SerialUSB
 
 #define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 60000
+#define DEFAULT_MEASUREMENT_INTERVAL 600000
 #define DEFAULT_NUMBER_OF_MEASUREMENTS 1
 #define DEFAULT_REPEATS 1
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072203" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072206" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -49,7 +49,7 @@
 #define USEADC2 1
 
 #define GAIN1 2 // Range for 0 to 2048 mV
-#define GAIN2 2
+#define GAIN2 2 // Range from 0 to 2048 mV
 
 // Translate iot-configs.h defines into variabels
 static const char *host = IOT_CONFIG_IOTHUB_FQDN;
@@ -62,15 +62,21 @@ const char PINNUMBER[] = "031591"; // PIN Number
 
 const int delayBetweenMessages = 500; // Wait time im ms
 String response;
-bool useGPS = false;           // Geeft aan of de GPS beschikbaar is op de sensor
 static uint8_t lastResetCause; // Veld waarin staat wat de oorzaak is van de laatste reset.
 String IMEI = "";
 String DeviceName = ""; //
 String MQTTBroker = "";
 String Error = "";
 char sendBuffer[500];
-DataRecord measurements[MAX_NUMBER_OF_MEASUREMENTS];
-int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
+// DataRecord measurements[MAX_NUMBER_OF_MEASUREMENTS];
+// int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
+
+//Variables for reading the ports
+int16_t  CO2;                //Port2 p1_2
+int16_t  H;                  //Port3 p1_3 
+int16_t  T;                  //Port4 p1_4 
+int16_t  NH3;                //Port6 p2_2
+int32_t  MeasurementTime;     //Time of measurement
 
 GPRS gprs;
 NB nbAccess(false);                // Set op true om te debuggen
@@ -104,8 +110,8 @@ void sendRegistrationRequest();
 void sendErrorToEndpoint();
 void setupModem();
 
-void setGain(Adafruit_ADS1115 &sensor, uint8_t gain);
-double getMultiplier(int portNumber); // Returns the multiplier for this specific portnumber
+// void setGain(Adafruit_ADS1115 &sensor, uint8_t gain);
+// double getMultiplier(int portNumber); // Returns the multiplier for this specific portnumber
 
 void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als buffer overloopt.
 
@@ -171,7 +177,6 @@ void setup()
   mqttClient.setUsernamePassword(username, "");
   mqttClient.onMessage(onMessageReceived); // Call back if an mesaage is received from the IOT-HUB
 
-  measurementPointer = 0;
   pinMode(LED_BUILTIN, OUTPUT);
   Serial1.begin(115200);
   Serial.begin(115200);
@@ -182,22 +187,10 @@ void setup()
   Serial.println("WDT Reset");
   sodaq_wdt_reset();
 
-  if (params._useADC1 == true)
-  {
-    Serial.print("Setting gain for ADC1 :");
-    Serial.println(params._gain_1);
-    setGain(ads1115_48, params._gain_1);
-  }
-
-  if (params._useADC2 == true)
-  {
-    Serial.print("Setting gain for ADC2 :");
-    Serial.println(params._gain_2);  
-    setGain(ads1115_49, params._gain_2);
-  }
+  ads1115_48.setGain(GAIN_TWO);
+  ads1115_49.setGain(GAIN_TWO);
 
   modem.begin();
-  measurementPointer = 0;
 }
 
 void loop()
@@ -220,25 +213,20 @@ void loop()
   blinkLed(2);
   Serial.println("Device is registred. Starting measurements now.");
   sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
-  getSensorData(&measurements[measurementPointer++]);
+
+  Serial.println("Reading ports");
+  getSensorData();
 
   // If the current measurementPointer is greater od equal then the buffer then send the data toi Azure.
-  Serial.print("Measurement pointer :");
-  Serial.println(measurementPointer);
-  Serial.print("Default number of measurements");
-  Serial.println(params._defaultNumberOfMeasurements);
+  // Serial.print("Measurement pointer :");
+  // Serial.println(measurementPointer);
+  // Serial.print("Default number of measurements");
+  // Serial.println(params._defaultNumberOfMeasurements);
 
+  Serial.println("Send message to IOT-HUB");
+  mqttClient.poll();
+  publishMessage();
 
-  if (measurementPointer >= params._defaultNumberOfMeasurements)
-  {
-    Serial.println("WDT save delay (8000) in loop just before publishMessage");
-    mqttClient.poll();
-    publishMessage(measurements, measurementPointer);
-    measurementPointer = 0;
-  }
-
-
-  // Reset the pointer
 }
 
 unsigned long getTime()
@@ -262,46 +250,6 @@ static void printBootUpMessage(Stream &stream)
   stream.println();
 }
 
-void setGain(Adafruit_ADS1115 &device, uint8_t gain)
-{
-  Serial.print("Setting gain for ");
-  Serial.print("DeviceName ");
-  Serial.print("on ");
-  Serial.print(gain);
-
-  if (gain == 0)
-  {
-    device.setGain(GAIN_ONE);
-  }
-  else if (gain == 1)
-  {
-    device.setGain(GAIN_ONE);
-  }
-  else if (gain == 2)
-  {
-    device.setGain(GAIN_TWO);
-  }
-  else if (gain == 4)
-  {
-    device.setGain(GAIN_FOUR);
-  }
-  else if (gain == 8)
-  {
-    device.setGain(GAIN_EIGHT);
-  }
-  else if (gain == 16)
-  {
-    device.setGain(GAIN_SIXTEEN);
-  }
-  else
-  {
-    device.setGain(GAIN_ONE);
-  }
-}
-
-/**
- * Callback from Config.reset(), used to override default values.
- */
 void onConfigReset(void)
 {
 
@@ -461,6 +409,8 @@ void publishSettings()
   Serial.println('New Json');
   Serial.println(sendBuffer);
 
+  sodaq_wdt_reset(); // Reset de WDT
+
   Serial.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
   mqttClient.print(sendBuffer);
@@ -542,7 +492,7 @@ double getMultiplier(int portNumber)
 /*
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 */
-void publishMessage(DataRecord records[], int numberOfMessages)
+void publishMessage()
 {
   // sodaq_wdt_disable();
 
@@ -558,68 +508,7 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   String Status = "Succes";
   String Message = "";
 
-  int32_t Total_P1 = 0;
-  int32_t Total_P2 = 0;
-  int32_t Total_P3 = 0;
-  int32_t Total_P4 = 0;
-  int32_t Total_P5 = 0;
-  int32_t Total_P6 = 0;
-  int32_t Total_P7 = 0;
-  int32_t Total_P8 = 0;
-
   Serial.println("*** Entering publish message ***");
-  Serial.print("Total number of messeages: ");
-  Serial.println(numberOfMessages);
-
-  for (int ii = 0; ii < numberOfMessages; ii++)
-  {
-    if (params._useADC1 == true)
-    {
-      Total_P1 += records[ii].P1;
-      Total_P2 += records[ii].P2;
-      Total_P3 += records[ii].P3;
-      Total_P4 += records[ii].P4;
-    }
-
-    if (params._useADC2 == true)
-    {
-      Total_P5 += records[ii].P5;
-      Total_P6 += records[ii].P6;
-      Total_P7 += records[ii].P7;
-      Total_P8 += records[ii].P8;
-    }
-  }
-
-  Serial.println("** Overview ***");
-  if (params._useADC1 == true)
-  {
-    Serial.print("Total of port 1:");
-    Serial.println(Total_P1);
-
-    Serial.print("Total of port 2:");
-    Serial.println(Total_P2);
-
-    Serial.print("Total of port 3:");
-    Serial.println(Total_P3);
-
-    Serial.print("Total of port 4:");
-    Serial.println(Total_P4);
-  }
-
-  if (params._useADC2 == true)
-  {
-    Serial.print("Total of port 5:");
-    Serial.println(Total_P5);
-
-    Serial.print("Total of port 6:");
-    Serial.println(Total_P6);
-
-    Serial.print("Total of port 7:");
-    Serial.println(Total_P7);
-
-    Serial.print("Total of port 8:");
-    Serial.println(Total_P8);
-  }
 
   deviceId = params.getDeviceName();
   Serial.print("Name of device:");
@@ -636,89 +525,26 @@ void publishMessage(DataRecord records[], int numberOfMessages)
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
-
-
-  if (strlen(params._p1_1) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p1_1).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P1 / numberOfMessages) * getMultiplier(0)).c_str());
-
-  }
-
-  if (strlen(params._p1_2) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p1_2).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P2 / numberOfMessages) * getMultiplier(1)).c_str());
-
-  }
-
-  if (strlen(params._p1_3) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p1_3).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P3 / numberOfMessages) * getMultiplier(2)).c_str());
-  }
-
-  if (strlen(params._p1_4) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p1_4).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P4 / numberOfMessages) * getMultiplier(3)).c_str());
-
-  }
-
-  if (strlen(params._p2_1) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p2_1).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P5 / numberOfMessages) * getMultiplier(4)).c_str());
-  }
-
-  if (strlen(params._p2_2) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p2_2).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P6 / numberOfMessages) * getMultiplier(5)).c_str());
-  }
-
-  if (strlen(params._p2_3) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p2_3).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P7 / numberOfMessages) * getMultiplier(6)).c_str());
-  }
-
-  if (strlen(params._p2_4) > 0)
-  {
-    strcat(sendBuffer,",");
-    strcat(sendBuffer,"\"");
-    strcat(sendBuffer, String(params._p2_4).c_str());
-    strcat(sendBuffer,"\":");
-    strcat(sendBuffer, String((Total_P8 / numberOfMessages) * getMultiplier(7)).c_str());
-  }
-
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"CO2\":");
+  strcat(sendBuffer, String((CO2) * 0.06250F).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"H\":");
+  strcat(sendBuffer, String((H) * 0.06250F).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"T\":");
+  strcat(sendBuffer, String((T) * 0.06250F).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"NH3\":");
+  strcat(sendBuffer, String((NH3) * 0.06250F).c_str());
   strcat(sendBuffer, "}");
 
-  Serial.println("New Format");
+  Serial.println("Format send to MQTT");
   Serial.println(sendBuffer);
 
-  Serial.println("Just before sending data");
+  sodaq_wdt_reset(); // Reset de WDT
+
+  Serial.println("sending data...");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
   mqttClient.print(sendBuffer);
   mqttClient.endMessage();
@@ -764,72 +590,33 @@ void connectMQTT()
 }
 
 /* Lees de datauit van de methaan sensor. Omdat nog niet duidelijk hoe dit wordt gedaan wordt er hier een random getal genomen tussen de 0 en 10000. */
-void getSensorData(DataRecord *record)
+void getSensorData()
 {
   Serial.println("Reading ADC converters....");
   int16_t value;
 
-  if (params._useADC1 == true)
-  {
-    value = ads1115_48.readADC_SingleEnded(3);
-    Serial.print("Port 1 :");
-    Serial.println(value);
-    record->P1 = value;
 
-    value = ads1115_48.readADC_SingleEnded(2);
-    Serial.print("Port 2 :");
-    Serial.println(value);
-    record->P2 = value;
+  CO2 = ads1115_48.readADC_SingleEnded(2);
+  H = ads1115_48.readADC_SingleEnded(1);
+  T = ads1115_48.readADC_SingleEnded(0);
+  NH3 = ads1115_49.readADC_SingleEnded(2);
+  MeasurementTime = getTime();
 
-    value = ads1115_48.readADC_SingleEnded(1);
-    Serial.print("Port 3 :");
-    Serial.println(value);
-    record->P3 = value;
+/* Send values to display */
+  Serial.println("***************** Actual values read from port ***************************** ");
+  Serial.print("CO2 :"); Serial.println(CO2);
+  Serial.print("H   :"); Serial.println(H);
+  Serial.print("T   :"); Serial.println(T);
+  Serial.print("NH3 :"); Serial.println(NH3);
+  Serial.println("**************************************************************************** ");
 
-    value = ads1115_48.readADC_SingleEnded(0);
-    Serial.print("Port 4 :");
-    Serial.println(value);
-    record->P4 = value;
-  }
 
-  if (params._useADC2 == true)
-  {
-    value = ads1115_49.readADC_SingleEnded(3);
-    Serial.print("Port 5 :");
-    Serial.println(value);
-    record->P5 = value;
-
-    value = ads1115_49.readADC_SingleEnded(2);
-    Serial.print("Port 6 :");
-    Serial.println(value);
-    record->P6 = value;
-
-    value = ads1115_49.readADC_SingleEnded(1);
-    Serial.print("Port 7 :");
-    Serial.println(value);
-    record->P7 = value;
-
-    value = ads1115_49.readADC_SingleEnded(0);
-    Serial.print("Port 8 :");
-    Serial.println(value);
-    record->P8 = value;
-  }
-
-  record->P9 = random(1000);
-  record->P10 = random(1000);
-  record->P11 = random(1000);
-  record->P12 = random(1000);
-
-  record->P13 = random(1000);
-  record->P14 = random(1000);
-  record->P15 = random(1000);
-  record->P16 = random(1000);
 
   if (params._isLedEnabled)
   {
     blinkLed(1);
   }
-  record->time = getTime();
+  //record->time = getTime();
 }
 
 /*

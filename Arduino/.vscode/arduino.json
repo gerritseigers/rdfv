@@ -1,5 +1,5 @@
 {
-    "port": "COM22",
+    "port": "COM26",
     "board": "arduino:samd:mkrnb1500",
     "sketch": "Arduino.ino",
     "output": "../output"
