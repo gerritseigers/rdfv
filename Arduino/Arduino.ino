@@ -23,13 +23,13 @@
 #define CONSOLE_STREAM SerialUSB
 
 #define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL 600000
+#define DEFAULT_MEASUREMENT_INTERVAL   8000
 #define DEFAULT_NUMBER_OF_MEASUREMENTS 1
-#define DEFAULT_REPEATS 1
+#define DEFAULT_REPEATS 100000
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072206" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072203" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -64,7 +64,7 @@ const int delayBetweenMessages = 500; // Wait time im ms
 String response;
 static uint8_t lastResetCause; // Veld waarin staat wat de oorzaak is van de laatste reset.
 String IMEI = "";
-String DeviceName = ""; //
+String DeviceName; 
 String MQTTBroker = "";
 String Error = "";
 char sendBuffer[500];
@@ -77,6 +77,7 @@ int16_t  H;                  //Port3 p1_3
 int16_t  T;                  //Port4 p1_4 
 int16_t  NH3;                //Port6 p2_2
 int32_t  MeasurementTime;     //Time of measurement
+int16_t  repeatCounter;      // 
 
 GPRS gprs;
 NB nbAccess(false);                // Set op true om te debuggen
@@ -117,6 +118,8 @@ void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als 
 
 void setup()
 {
+  Serial.begin(115200);
+  
   lastResetCause = PM->RCAUSE.reg;
   blinkLed(5);
 
@@ -190,6 +193,8 @@ void setup()
   ads1115_48.setGain(GAIN_TWO);
   ads1115_49.setGain(GAIN_TWO);
 
+  repeatCounter = 0;
+
   modem.begin();
 }
 
@@ -197,22 +202,32 @@ void loop()
 {
   Serial.println("WDT is reset");
   sodaq_wdt_reset(); // Reset de WDT
+  Serial.print("Counter :");
+  Serial.println(repeatCounter);
+
+  if (repeatCounter > params._defaultRepeats)
+  {
+        Serial.println("Rebooting device counter reached settings....");
+        resetFunc();
+  }
 
   // Make a connection
   if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY)
   {
+    Serial.println("No connection with T-Mobile");
     connectNB();
   }
 
   // Controleer of de MQTT Client beschikbaar is. Als er een timeout is dan moet er iets worden gedaan? TODO
   if (!mqttClient.connected())
   {
+    Serial.println("No connection with Azure");
     connectMQTT();
   }
 
   blinkLed(2);
   Serial.println("Device is registred. Starting measurements now.");
-  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
+
 
   Serial.println("Reading ports");
   getSensorData();
@@ -224,14 +239,17 @@ void loop()
   // Serial.println(params._defaultNumberOfMeasurements);
 
   Serial.println("Send message to IOT-HUB");
-  mqttClient.poll();
   publishMessage();
-
+  // mqttClient.poll();
+  Serial.println("Entering waiting loop...");
+  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
+  repeatCounter = repeatCounter + 1;
 }
 
 unsigned long getTime()
 {
   // get the current time from the cellular module
+  Serial.println("Getting the time...");
   return nbAccess.getTime();
 }
 
@@ -499,20 +517,24 @@ void publishMessage()
   /* Defintions of the multipliers */
 
   /* Send all message in the array record to azure. */
+  sodaq_wdt_disable();
+  delay(500);
+  sodaq_wdt_enable(WDT_PERIOD_8X);
+  Serial.println("EDT Set for 8 sec");
 
   unsigned long timeStamp = getTime();
-  String endPoint;
-  String jsonString;
-  String deviceId;
+  //String endPoint;
+  //String jsonString;
+  //String deviceId;
 
-  String Status = "Succes";
-  String Message = "";
+  //String Status = "Succes";
+  //String Message = "";
 
   Serial.println("*** Entering publish message ***");
 
-  deviceId = params.getDeviceName();
+  //deviceId = params.getDeviceName();
   Serial.print("Name of device:");
-  Serial.println(deviceId);
+  Serial.println(params.getDeviceName());
 
   strcpy(sendBuffer, "{");
   strcat(sendBuffer, "\"Type\":");
@@ -520,7 +542,7 @@ void publishMessage()
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"DeviceName\":");
   strcat(sendBuffer, "\"");
-  strcat(sendBuffer, deviceId.c_str());
+  strcat(sendBuffer, "\"A04072203\":");
   strcat(sendBuffer,"\"");
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
@@ -545,7 +567,7 @@ void publishMessage()
   sodaq_wdt_reset(); // Reset de WDT
 
   Serial.println("sending data...");
-  mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
+  mqttClient.beginMessage("devices/" + DeviceName + "/messages/events/");
   mqttClient.print(sendBuffer);
   mqttClient.endMessage();
   Serial.println("End sending data");
@@ -560,8 +582,8 @@ void connectMQTT()
   endPoint += DeviceName;
   endPoint += "/messages/devicebound/#";
 
-  Serial.println("Disable WDT");
-  sodaq_wdt_disable();
+ // Serial.println("Disable WDT");
+//  sodaq_wdt_disable();
 
   strcpy(_mqttEndpoint, MQTTBroker.c_str());
   Serial.print("Attempting to MQTT broker: ");
@@ -573,7 +595,7 @@ void connectMQTT()
     // failed, retry
     Serial.print(".");
     Serial.println(mqttClient.connectError());
-    delay(5000);
+    sodaq_wdt_safe_delay(5000);
   }
 
   Serial.println();
@@ -585,8 +607,8 @@ void connectMQTT()
   Serial.print("Device is listening to endPoint :");
   Serial.println(endPoint);
   mqttClient.subscribe(endPoint);
-  Serial.println("Enble WDT");
-  sodaq_wdt_enable(WDT_PERIOD_8X);
+//  Serial.println("Enble WDT");
+//  sodaq_wdt_enable(WDT_PERIOD_8X);
 }
 
 /* Lees de datauit van de methaan sensor. Omdat nog niet duidelijk hoe dit wordt gedaan wordt er hier een random getal genomen tussen de 0 en 10000. */
@@ -597,9 +619,17 @@ void getSensorData()
 
 
   CO2 = ads1115_48.readADC_SingleEnded(2);
+  Serial.println("Reading CO2");
+  sodaq_wdt_safe_delay(1000);
   H = ads1115_48.readADC_SingleEnded(1);
+  Serial.println("Reading H....");
+  sodaq_wdt_safe_delay(1000);
   T = ads1115_48.readADC_SingleEnded(0);
+  Serial.println("Reading Temp....");
+  sodaq_wdt_safe_delay(1000);
   NH3 = ads1115_49.readADC_SingleEnded(2);
+  Serial.println("Reading NH3....");
+  sodaq_wdt_safe_delay(1000);
   MeasurementTime = getTime();
 
 /* Send values to display */
@@ -745,9 +775,7 @@ void connectNB()
   sodaq_wdt_enable(WDT_PERIOD_8X);
 
   Serial.println("You're connected to the cellular network");
-  Serial.println();
-
-  
+  Serial.println(); 
 }
 
 void setupModem()
