@@ -32,11 +32,11 @@ extern char *__brkval;
 #define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
 #define DEFAULT_MEASUREMENT_INTERVAL   8000
 #define DEFAULT_NUMBER_OF_MEASUREMENTS 1
-#define DEFAULT_REPEATS 60
+#define DEFAULT_REPEATS 60000
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072209" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072212" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -534,18 +534,18 @@ void publishMessage()
 
   /* Send all message in the array record to azure. */
 
-  if (wdtCounter > 3) {
-    Serial.println("Testing WDT");
-    while(1) {};
-  } else {
-    Serial.println("WDT not calling");
-  }
+  // if (wdtCounter > 3) {
+  //   Serial.println("Testing WDT");
+  //   while(1) {};
+  // } else {
+  //   Serial.println("WDT not calling");
+  // }
 
 
 
-  sodaq_wdt_disable();
-  delay(500);
-  sodaq_wdt_enable(WDT_PERIOD_8X);
+  // sodaq_wdt_disable();
+  // delay(500);
+  // sodaq_wdt_enable(WDT_PERIOD_8X);
 
   mqttClient.poll();
 

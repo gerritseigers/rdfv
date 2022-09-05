@@ -280,7 +280,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072209" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072212" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -308,7 +308,7 @@ void onConfigReset(void)
 
 
 
-  params._defaultRepeats = 60;
+  params._defaultRepeats = 60000;
 
 
 
@@ -518,18 +518,18 @@ void publishMessage()
 
   /* Send all message in the array record to azure. */
 
-  if (wdtCounter > 3) {
-    SerialUSB.println("Testing WDT");
-    while(1) {};
-  } else {
-    SerialUSB.println("WDT not calling");
-  }
+  // if (wdtCounter > 3) {
+  //   Serial.println("Testing WDT");
+  //   while(1) {};
+  // } else {
+  //   Serial.println("WDT not calling");
+  // }
 
 
 
-  sodaq_wdt_disable();
-  delay(500);
-  sodaq_wdt_enable(WDT_PERIOD_8X);
+  // sodaq_wdt_disable();
+  // delay(500);
+  // sodaq_wdt_enable(WDT_PERIOD_8X);
 
   mqttClient.poll();
 
