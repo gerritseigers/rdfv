@@ -36,8 +36,13 @@
   },
   {
     "Sourcefile": "c:\\Projects\\rdfv\\output\\sketch\\Arduino.ino.cpp",
-    "Include": "Adafruit_ADS1015.h",
+    "Include": "Adafruit_ADS1X15.h",
     "Includepath": "C:\\Arduino15\\libraries\\Adafruit_ADS1X15"
+  },
+  {
+    "Sourcefile": "c:\\Projects\\rdfv\\output\\sketch\\Arduino.ino.cpp",
+    "Include": "Adafruit_I2CDevice.h",
+    "Includepath": "C:\\Arduino15\\libraries\\Adafruit_BusIO"
   },
   {
     "Sourcefile": "c:\\Projects\\rdfv\\output\\sketch\\Arduino.ino.cpp",
@@ -1590,7 +1595,32 @@
     "Includepath": null
   },
   {
-    "Sourcefile": "C:\\Arduino15\\libraries\\Adafruit_ADS1X15\\Adafruit_ADS1015.cpp",
+    "Sourcefile": "C:\\Arduino15\\libraries\\Adafruit_ADS1X15\\Adafruit_ADS1X15.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Arduino15\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+    "Include": "SPI.h",
+    "Includepath": "C:\\Users\\seige001\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\libraries\\SPI"
+  },
+  {
+    "Sourcefile": "C:\\Arduino15\\libraries\\Adafruit_BusIO\\Adafruit_BusIO_Register.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Arduino15\\libraries\\Adafruit_BusIO\\Adafruit_I2CDevice.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Arduino15\\libraries\\Adafruit_BusIO\\Adafruit_SPIDevice.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\seige001\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\libraries\\SPI\\SPI.cpp",
     "Include": "",
     "Includepath": null
   }

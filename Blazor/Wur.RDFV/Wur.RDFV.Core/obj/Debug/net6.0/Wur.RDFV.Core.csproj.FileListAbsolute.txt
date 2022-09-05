@@ -10,3 +10,15 @@ C:\Marien\Sources\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.d
 C:\Marien\Sources\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\refint\Wur.RDFV.Core.dll
 C:\Marien\Sources\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.pdb
 C:\Marien\Sources\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\ref\Wur.RDFV.Core.dll
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\bin\Debug\net6.0\Wur.RDFV.Core.deps.json
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\bin\Debug\net6.0\Wur.RDFV.Core.dll
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\bin\Debug\net6.0\Wur.RDFV.Core.pdb
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.csproj.AssemblyReference.cache
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.AssemblyInfoInputs.cache
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.AssemblyInfo.cs
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.csproj.CoreCompileInputs.cache
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.dll
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\refint\Wur.RDFV.Core.dll
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\Wur.RDFV.Core.pdb
+C:\Projects\rdfv\Blazor\Wur.RDFV\Wur.RDFV.Core\obj\Debug\net6.0\ref\Wur.RDFV.Core.dll

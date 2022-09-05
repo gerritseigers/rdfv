@@ -19,9 +19,13 @@
 # 17 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 18 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 19 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
-# 39 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 
-# 39 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+
+
+# 21 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+# 46 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 //#define PORT1 "T"
 
 
@@ -76,8 +80,8 @@ NBModem modem;
 String username;
 String broker;
 
-Adafruit_ADS1115 ads1115_48(0x48);
-Adafruit_ADS1115 ads1115_49(0x49);
+Adafruit_ADS1015 ads1115_48;
+Adafruit_ADS1015 ads1115_49;
 
 /* Declare the function that are needed in the sketch */
 unsigned long getTime();
@@ -109,6 +113,9 @@ void setup()
   lastResetCause = ((Pm *)0x40000400UL) /**< \brief (PM) APB Base Address */->RCAUSE.reg;
   blinkLed(5);
 
+  ads1115_48.begin(0x48);
+  ads1115_49.begin(0x49);
+
   setupModem();
 
   // Disable the WDT tijdens het setup proces
@@ -131,8 +138,7 @@ void setup()
   if (!ECCX08.begin())
   {
     SerialUSB.println("No ECCX08 present!");
-    while (1)
-      ;
+    while (1);
   }
   // Wait for the sensor to be ready
 
@@ -226,10 +232,14 @@ void loop()
 
   SerialUSB.println("Send message to IOT-HUB");
   publishMessage();
-  // mqttClient.poll();
   SerialUSB.println("Entering waiting loop...");
   sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
   repeatCounter = repeatCounter + 1;
+
+  SerialUSB.print("Free memory:");
+  int free = freeMemory();
+  SerialUSB.print(free);
+
 }
 
 unsigned long getTime()
@@ -244,7 +254,7 @@ unsigned long getTime()
  * Prints a boot-up message that includes project name, version and Cpu reset cause.
 
  */
-# 259 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 272 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 static void printBootUpMessage(Stream &stream)
 {
   stream.println("** " "Project Marien" " - " "1.0.0" " **");
@@ -267,7 +277,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072203" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072213" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -295,7 +305,7 @@ void onConfigReset(void)
 
 
 
-  params._defaultRepeats = 100000;
+  params._defaultRepeats = 60;
 
 
 
@@ -340,7 +350,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 363 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 376 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 /**
@@ -348,7 +358,7 @@ void onConfigReset(void)
  * Shows and handles the boot up commands.
 
  */
-# 368 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 381 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void handleBootUpCommands()
 {
   do
@@ -496,7 +506,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 513 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 526 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage()
 {
   // sodaq_wdt_disable();
@@ -507,12 +517,16 @@ void publishMessage()
   sodaq_wdt_disable();
   delay(500);
   sodaq_wdt_enable(WDT_PERIOD_8X);
+
+  mqttClient.poll();
+
   SerialUSB.println("EDT Set for 8 sec");
 
   unsigned long timeStamp = getTime();
   //String endPoint;
   //String jsonString;
-  //String deviceId;
+  String deviceId;
+  deviceId = params.getDeviceName();
 
   //String Status = "Succes";
   //String Message = "";
@@ -529,23 +543,23 @@ void publishMessage()
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"DeviceName\":");
   strcat(sendBuffer, "\"");
-  strcat(sendBuffer, "\"A04072203\":");
+  strcat(sendBuffer, deviceId.c_str());
   strcat(sendBuffer,"\"");
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"CO2\":");
-  strcat(sendBuffer, String((CO2) * 0.06250F).c_str());
+  strcat(sendBuffer, String((CO2)).c_str());
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"H\":");
-  strcat(sendBuffer, String((H) * 0.06250F).c_str());
+  strcat(sendBuffer, String((H)).c_str());
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"T\":");
-  strcat(sendBuffer, String((T) * 0.06250F).c_str());
+  strcat(sendBuffer, String((T)).c_str());
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"NH3\":");
-  strcat(sendBuffer, String((NH3) * 0.06250F).c_str());
+  strcat(sendBuffer, String((NH3)).c_str());
   strcat(sendBuffer, "}");
 
   SerialUSB.println("Format send to MQTT");
@@ -645,7 +659,7 @@ void getSensorData()
  * Set variables from Azure.
 
  */
-# 657 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 674 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 
@@ -699,11 +713,12 @@ void onMessageReceived(int messageSize)
         params._defaultNumberOfMeasurements = buffer;
       }
 
-      if ((repeats > 0 && repeats < 10))
+      if ((repeats > 0 && repeats < 3600))
       {
         SerialUSB.print("Setting repeats to :");
         SerialUSB.println(repeats);
         params._defaultRepeats = repeats;
+        needsReboot = true;
       }
 
       params.commit(true);
@@ -845,4 +860,15 @@ char stringTochar(String s)
   char arr[12];
   s.toCharArray(arr, sizeof(arr));
   return atol(arr);
+}
+
+int freeMemory() {
+  char top;
+
+  return &top - reinterpret_cast<char*>(sbrk(0));
+
+
+
+
+
 }

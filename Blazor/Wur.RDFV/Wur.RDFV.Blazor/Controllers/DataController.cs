@@ -52,25 +52,25 @@ namespace Wur.RDFV.Blazor.Controllers
 					deviceData.TimeStamp = dateTimeOffset.DateTime;
 					try
 					{
-						deviceData.CO2 = item.CO2;
+						deviceData.CO2 = (float) item.CO2;
 					}
 					catch (Exception ex) { }
 
 					try
 					{
-						deviceData.TEMP = item.T;
+						deviceData.TEMP = (float) item.T;
 					}
 					catch (Exception ex) { }
 
 					try
 					{
-						deviceData.HUM = item.H;
+						deviceData.HUM = (float) item.H;
 					}
 					catch (Exception ex) { }
 
 					try
 					{
-						deviceData.NH3 = item.NH3;
+						deviceData.NH3 = (float) item.NH3;
 					}
 					catch (Exception ex) { }
 

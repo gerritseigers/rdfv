@@ -141,7 +141,8 @@ c:\Projects\rdfv\output\sketch\Arduino.ino.cpp.o: \
  C:\Arduino15\libraries\ArduinoBearSSL\src/SHA256.h \
  C:\Arduino15\libraries\ArduinoMqttClient\src/ArduinoMqttClient.h \
  C:\Arduino15\libraries\ArduinoMqttClient\src/MqttClient.h \
- C:\Arduino15\libraries\Adafruit_ADS1X15/Adafruit_ADS1015.h \
+ C:\Arduino15\libraries\Adafruit_ADS1X15/Adafruit_ADS1X15.h \
+ C:\Arduino15\libraries\Adafruit_BusIO/Adafruit_I2CDevice.h \
  C:\Arduino15\libraries\MKRNB\src/Modem.h \
  C:\Arduino15\libraries\ArduinoECCX08\src/utility/ECCX08SelfSignedCert.h \
  c:\Projects\rdfv\output\sketch\iot_configs.h \

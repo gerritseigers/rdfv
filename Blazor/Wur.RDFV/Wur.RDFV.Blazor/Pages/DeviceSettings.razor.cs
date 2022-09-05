@@ -40,7 +40,8 @@ namespace Wur.RDFV.Blazor.Pages
                     DeviceName = settingsRecord.DeviceName,
                     Buffer = settingsRecord.Buffer,
                     Interval = settingsRecord.Interval,
-                    TimeStamp = settingsRecord.TimeStamp
+                    TimeStamp = settingsRecord.TimeStamp,
+                    Repeats = settingsRecord.Repeats
                 };
 
                 InvokeAsync(() => StateHasChanged());

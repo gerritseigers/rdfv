@@ -8,7 +8,7 @@
 #include <ArduinoECCX08.h>
 #include <ArduinoBearSSL.h>
 #include <ArduinoMqttClient.h>
-#include <Adafruit_ADS1015.h>
+#include <Adafruit_ADS1X15.h>
 #include <Modem.h>
 #include <utility/ECCX08SelfSignedCert.h>
 #include "iot_configs.h"
@@ -19,6 +19,13 @@
 #include <ArduinoJson.h>
 #include <cstring>
 
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char* sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif  // __arm__
+
 #define PROJECT_NAME "Project Marien"
 #define VERSION "1.0.0"
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
@@ -27,11 +34,11 @@
 #define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
 #define DEFAULT_MEASUREMENT_INTERVAL   8000
 #define DEFAULT_NUMBER_OF_MEASUREMENTS 1
-#define DEFAULT_REPEATS 100000
+#define DEFAULT_REPEATS 60
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072203" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072213" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -92,8 +99,8 @@ NBModem modem;
 String username;
 String broker;
 
-Adafruit_ADS1115 ads1115_48(0x48);
-Adafruit_ADS1115 ads1115_49(0x49);
+Adafruit_ADS1015 ads1115_48;
+Adafruit_ADS1015 ads1115_49;
 
 /* Declare the function that are needed in the sketch */
 unsigned long getTime();
@@ -118,29 +125,34 @@ void setupModem();
 
 void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als buffer overloopt.
 
-#line 119 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 126 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup();
-#line 201 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 210 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void loop();
-#line 379 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 392 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 469 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 482 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 double getMultiplier(int portNumber);
-#line 615 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 632 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData();
-#line 657 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 674 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 748 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 766 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 851 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 869 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
-#line 119 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 876 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+int freeMemory();
+#line 126 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
 {
   Serial.begin(115200);
   
   lastResetCause = PM->RCAUSE.reg;
   blinkLed(5);
+
+  ads1115_48.begin(0x48);
+  ads1115_49.begin(0x49);
 
   setupModem();
 
@@ -164,8 +176,7 @@ void setup()
   if (!ECCX08.begin())
   {
     Serial.println("No ECCX08 present!");
-    while (1)
-      ;
+    while (1);
   }
   // Wait for the sensor to be ready
 
@@ -259,10 +270,14 @@ void loop()
 
   Serial.println("Send message to IOT-HUB");
   publishMessage();
-  // mqttClient.poll();
   Serial.println("Entering waiting loop...");
   sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
   repeatCounter = repeatCounter + 1;
+
+  Serial.print("Free memory:");
+  int free = freeMemory();
+  Serial.print(free);
+
 }
 
 unsigned long getTime()
@@ -539,12 +554,16 @@ void publishMessage()
   sodaq_wdt_disable();
   delay(500);
   sodaq_wdt_enable(WDT_PERIOD_8X);
+
+  mqttClient.poll();
+
   Serial.println("EDT Set for 8 sec");
 
   unsigned long timeStamp = getTime();
   //String endPoint;
   //String jsonString;
-  //String deviceId;
+  String deviceId;
+  deviceId = params.getDeviceName();
 
   //String Status = "Succes";
   //String Message = "";
@@ -561,23 +580,23 @@ void publishMessage()
   strcat(sendBuffer, ",");
   strcat(sendBuffer, "\"DeviceName\":");
   strcat(sendBuffer, "\"");
-  strcat(sendBuffer, "\"A04072203\":");
+  strcat(sendBuffer, deviceId.c_str());
   strcat(sendBuffer,"\"");
   strcat(sendBuffer,"," );
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"CO2\":");
-  strcat(sendBuffer, String((CO2) * 0.06250F).c_str());
+  strcat(sendBuffer, String((CO2)).c_str());
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"H\":");
-  strcat(sendBuffer, String((H) * 0.06250F).c_str());
+  strcat(sendBuffer, String((H)).c_str());
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"T\":");
-  strcat(sendBuffer, String((T) * 0.06250F).c_str());
+  strcat(sendBuffer, String((T)).c_str());
   strcat(sendBuffer,",");
   strcat(sendBuffer, "\"NH3\":");
-  strcat(sendBuffer, String((NH3) * 0.06250F).c_str());
+  strcat(sendBuffer, String((NH3)).c_str());
   strcat(sendBuffer, "}");
 
   Serial.println("Format send to MQTT");
@@ -726,11 +745,12 @@ void onMessageReceived(int messageSize)
         params._defaultNumberOfMeasurements = buffer;
       }
 
-      if ((repeats > 0 && repeats < 10))
+      if ((repeats > 0 && repeats < 3600))
       {
         Serial.print("Setting repeats to :");
         Serial.println(repeats);
         params._defaultRepeats = repeats;
+        needsReboot = true;
       }
 
       params.commit(true);
@@ -872,4 +892,15 @@ char stringTochar(String s)
   char arr[12];
   s.toCharArray(arr, sizeof(arr));
   return atol(arr);
+}
+
+int freeMemory() {
+  char top;
+#ifdef __arm__
+  return &top - reinterpret_cast<char*>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+  return &top - __brkval;
+#else  // __arm__
+  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif  // __arm__
 }
