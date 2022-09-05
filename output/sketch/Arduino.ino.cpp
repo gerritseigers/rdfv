@@ -38,7 +38,7 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072213" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072209" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -87,6 +87,7 @@ int16_t  T;                  //Port4 p1_4
 int16_t  NH3;                //Port6 p2_2
 int32_t  MeasurementTime;     //Time of measurement
 int16_t  repeatCounter;      // 
+int16_t  wdtCounter;
 
 GPRS gprs;
 NB nbAccess(false);                // Set op true om te debuggen
@@ -125,25 +126,25 @@ void setupModem();
 
 void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als buffer overloopt.
 
-#line 126 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 127 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup();
-#line 210 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 212 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void loop();
-#line 392 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 395 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 482 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 485 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 double getMultiplier(int portNumber);
-#line 632 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 645 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData();
-#line 674 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 687 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 766 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 779 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 869 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 882 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
-#line 876 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 889 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 int freeMemory();
-#line 126 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 127 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
 {
   Serial.begin(115200);
@@ -226,6 +227,7 @@ void setup()
   repeatCounter = 0;
 
   modem.begin();
+  wdtCounter = 0;
 }
 
 void loop()
@@ -276,6 +278,7 @@ void loop()
 
   Serial.print("Free memory:");
   int free = freeMemory();
+  wdtCounter += 1;
   Serial.print(free);
 
 }
@@ -551,6 +554,16 @@ void publishMessage()
   /* Defintions of the multipliers */
 
   /* Send all message in the array record to azure. */
+
+  if (wdtCounter > 3) {
+    Serial.println("Testing WDT");
+    while(1) {};
+  } else {
+    Serial.println("WDT not calling");
+  }
+
+
+
   sodaq_wdt_disable();
   delay(500);
   sodaq_wdt_enable(WDT_PERIOD_8X);

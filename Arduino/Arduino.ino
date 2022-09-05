@@ -36,7 +36,7 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072213" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072209" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -85,6 +85,7 @@ int16_t  T;                  //Port4 p1_4
 int16_t  NH3;                //Port6 p2_2
 int32_t  MeasurementTime;     //Time of measurement
 int16_t  repeatCounter;      // 
+int16_t  wdtCounter;
 
 GPRS gprs;
 NB nbAccess(false);                // Set op true om te debuggen
@@ -205,6 +206,7 @@ void setup()
   repeatCounter = 0;
 
   modem.begin();
+  wdtCounter = 0;
 }
 
 void loop()
@@ -255,6 +257,7 @@ void loop()
 
   Serial.print("Free memory:");
   int free = freeMemory();
+  wdtCounter += 1;
   Serial.print(free);
 
 }
@@ -530,6 +533,16 @@ void publishMessage()
   /* Defintions of the multipliers */
 
   /* Send all message in the array record to azure. */
+
+  if (wdtCounter > 3) {
+    Serial.println("Testing WDT");
+    while(1) {};
+  } else {
+    Serial.println("WDT not calling");
+  }
+
+
+
   sodaq_wdt_disable();
   delay(500);
   sodaq_wdt_enable(WDT_PERIOD_8X);

@@ -1,6 +1,6 @@
 {
     "board": "arduino:samd:mkrnb1500",
-    "port": "COM35",
+    "port": "COM30",
     "sketch": "Arduino.ino",
     "output": "../output"
 }

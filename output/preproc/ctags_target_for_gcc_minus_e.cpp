@@ -68,6 +68,7 @@ int16_t T; //Port4 p1_4
 int16_t NH3; //Port6 p2_2
 int32_t MeasurementTime; //Time of measurement
 int16_t repeatCounter; // 
+int16_t wdtCounter;
 
 GPRS gprs;
 NB nbAccess(false); // Set op true om te debuggen
@@ -188,6 +189,7 @@ void setup()
   repeatCounter = 0;
 
   modem.begin();
+  wdtCounter = 0;
 }
 
 void loop()
@@ -238,6 +240,7 @@ void loop()
 
   SerialUSB.print("Free memory:");
   int free = freeMemory();
+  wdtCounter += 1;
   SerialUSB.print(free);
 
 }
@@ -254,7 +257,7 @@ unsigned long getTime()
  * Prints a boot-up message that includes project name, version and Cpu reset cause.
 
  */
-# 272 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 275 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 static void printBootUpMessage(Stream &stream)
 {
   stream.println("** " "Project Marien" " - " "1.0.0" " **");
@@ -277,7 +280,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072213" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072209" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -350,7 +353,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 376 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 379 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 /**
@@ -358,7 +361,7 @@ void onConfigReset(void)
  * Shows and handles the boot up commands.
 
  */
-# 381 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 384 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void handleBootUpCommands()
 {
   do
@@ -506,7 +509,7 @@ double getMultiplier(int portNumber)
   Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
 
 */
-# 526 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 529 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishMessage()
 {
   // sodaq_wdt_disable();
@@ -514,6 +517,16 @@ void publishMessage()
   /* Defintions of the multipliers */
 
   /* Send all message in the array record to azure. */
+
+  if (wdtCounter > 3) {
+    SerialUSB.println("Testing WDT");
+    while(1) {};
+  } else {
+    SerialUSB.println("WDT not calling");
+  }
+
+
+
   sodaq_wdt_disable();
   delay(500);
   sodaq_wdt_enable(WDT_PERIOD_8X);
@@ -659,7 +672,7 @@ void getSensorData()
  * Set variables from Azure.
 
  */
-# 674 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 687 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize)
 {
 
