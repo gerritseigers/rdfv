@@ -1,6 +1,10 @@
-/*
-
-*/
+/*=================================================================================================
+ * File:            17553_ArdLogger.ino
+ * Author:          G. Seigers / J. de Pagter
+ * Created date:    -
+ * Description:     Arduino program to run the MKR1500 NB with GPRS to Azure cloud (MQTT) to read
+ * some sensors for remote monitoring
+=================================================================================================*/
 
 #include <MKRNB.h>
 #include <ArduinoECCX08.h>
@@ -27,7 +31,7 @@ extern char *__brkval;
 #endif  // __arm__
 
 #define PROJECT_NAME "Project Marien"
-#define VERSION "1.0.0"
+#define VERSION "1.1.0"
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
