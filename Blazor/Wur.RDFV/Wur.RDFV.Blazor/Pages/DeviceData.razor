@@ -20,11 +20,17 @@ else
         <table class="table table-striped table-bordered" style="width:50%">
             <thead class="thead-dark">
             <tr>
-                <th style="width:10%">TimeStamp</th>
-                <th style="width:10%">Humidity</th>
-                <th style="width:10%">Temperature</th>
-                <th style="width:10%">CO2</th>
-                <th style="width:10%">NH3</th>
+                <th style="width:7%">TimeStamp</th>
+                <th style="width:7%">Humidity</th>
+                <th style="width:7%">Temperature</th>
+                <th style="width:7%">CO2</th>
+                <th style="width:7%">NH3</th>
+                <th style="width:7%">P1</th>
+                <th style="width:7%">P5</th>
+                <th style="width:7%">P7</th>
+                <th style="width:7%">P8</th>
+                <th style="width:7%">RC</th>
+                <th style="width:7%">Signal</th>
             </tr>
             </thead>
             @for(int ii = MaximumNumberOfItems-1;ii >= MaximumNumberOfItems-10 ; ii--)
@@ -35,6 +41,12 @@ else
                     <td>@items[ii].TEMP</td>
                     <td>@items[ii].CO2</td>
                     <td>@items[ii].NH3</td>
+                    <td>@items[ii].P1</td>
+                    <td>@items[ii].P5</td>
+                    <td>@items[ii].P7</td>
+                    <td>@items[ii].P8</td>
+                    <td>@items[ii].RC</td>
+                    <td>@items[ii].SS</td>
                 </tr>
             }
         </table>

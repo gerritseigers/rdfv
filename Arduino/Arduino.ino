@@ -16,6 +16,8 @@
 #include "Sodaq_wdt.h"
 #include <ArduinoJson.h>
 #include <cstring>
+#include <SPI.h>
+#include <SD.h>
 
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
@@ -36,12 +38,15 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072212" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072211" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
 #define PIN_NUMBER "915684"
 #define APN_A "iot.t-mobile.nl"
+
+#define MIN_SIGNAL_STRENGTH                 15      // get from modem the detected carrier (31 > 51 dBm)
+#define NO_SIGNAL_STRENGTH                  99      // What signal is detected when modem starts with no antenne or still initializing
 
 //#define PORT1 "T"
 #define PORT2 "CO2"
@@ -57,6 +62,9 @@ extern char *__brkval;
 
 #define GAIN1 2 // Range for 0 to 2048 mV
 #define GAIN2 2 // Range from 0 to 2048 mV
+
+//Used for SD card
+const int chipSelect = 4;
 
 // Translate iot-configs.h defines into variabels
 static const char *host = IOT_CONFIG_IOTHUB_FQDN;
@@ -75,24 +83,31 @@ String DeviceName;
 String MQTTBroker = "";
 String Error = "";
 char sendBuffer[500];
+bool sdPresent = false;
+
 // DataRecord measurements[MAX_NUMBER_OF_MEASUREMENTS];
 // int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
 //Variables for reading the ports
+int16_t  P1;
 int16_t  CO2;                //Port2 p1_2
 int16_t  H;                  //Port3 p1_3 
-int16_t  T;                  //Port4 p1_4 
+int16_t  T;                  //Port4 p1_4
+int16_t  P5; 
 int16_t  NH3;                //Port6 p2_2
+int16_t  P7;
+int16_t  P8;
 int32_t  MeasurementTime;     //Time of measurement
 int16_t  repeatCounter;      // 
 int16_t  wdtCounter;
 
 GPRS gprs;
-NB nbAccess(false);                // Set op true om te debuggen
-NBClient nbClient;                 // Used for the TCP socket connection
+NB            nbAccess(false);                // Set op true om te debuggen
+NBClient      nbClient;                 // Used for the TCP socket connection
 BearSSLClient sslClient(nbClient); // Used for SSL/TLS connection, integrates with ECC508
-MqttClient mqttClient(sslClient);
-NBModem modem;
+MqttClient    mqttClient(sslClient);
+NBModem       modem;
+NBScanner     nbScanner;
 
 // Variabels for MQTT
 String username;
@@ -118,6 +133,8 @@ void publishRegistration();
 void sendRegistrationRequest();
 void sendErrorToEndpoint();
 void setupModem();
+void writeToLogFile(String message);
+void writeToDataFile(unsigned long time, int16_t H, int16_t T, int16_t CO2, int16_t NH3, int16_t P1, int16_t P5, int16_t P7, int16_t P8);
 
 // void setGain(Adafruit_ADS1115 &sensor, uint8_t gain);
 // double getMultiplier(int portNumber); // Returns the multiplier for this specific portnumber
@@ -128,13 +145,39 @@ void setup()
 {
   Serial.begin(115200);
   
+  //Initialize SD card.
+  Serial.println("Initializing SD card...");
+  // see if the card is present and can be initialized:
+
+  if (!SD.begin(chipSelect)) {
+    Serial.println("Card failed, or not present");
+    sdPresent = false;
+    // don't do anything more:
+  }
+  else
+  {
+    sdPresent = true;
+    Serial.println("card initialized.");
+  }
+
   lastResetCause = PM->RCAUSE.reg;
   blinkLed(5);
 
   ads1115_48.begin(0x48);
   ads1115_49.begin(0x49);
 
-  setupModem();
+    // if coming from WDT reset!
+  if (lastResetCause & PM_RCAUSE_WDT)
+  {
+    Serial.println("WDT reset executed!");
+    writeToLogFile("WDT reset executed!");
+  }
+  else
+  {
+    Serial.println("Normal POR executed!");
+    writeToLogFile("Normal POR executed!");
+    setupModem();
+  }
 
   // Disable the WDT tijdens het setup proces
   Serial.println("WDT is disabled");
@@ -142,6 +185,9 @@ void setup()
 
   Serial1.begin(115200);
   params.read();
+
+
+
 
   // init params
 
@@ -156,6 +202,7 @@ void setup()
   if (!ECCX08.begin())
   {
     Serial.println("No ECCX08 present!");
+    writeToLogFile("WDT reset executed!");
     while (1);
   }
   // Wait for the sensor to be ready
@@ -206,26 +253,33 @@ void setup()
   repeatCounter = 0;
 
   modem.begin();
-  wdtCounter = 0;
+  connectNB();
 }
 
+//=================================================================================================
+// Function:    loop
+// Return:      -
+// Description: Main loop function within Arduino environment
+//=================================================================================================
 void loop()
 {
-  Serial.println("WDT is reset");
-  sodaq_wdt_reset(); // Reset de WDT
-  Serial.print("Counter :");
-  Serial.println(repeatCounter);
 
-  if (repeatCounter > params._defaultRepeats)
-  {
-        Serial.println("Rebooting device counter reached settings....");
-        resetFunc();
+  if (sdPresent==true){
+    Serial.println("Writing to SD file");
+  } else {
+    Serial.println("No SD present.");
   }
 
+  Serial.println("Entering loop");
+  writeToLogFile("Entering loop");
+
+  sodaq_wdt_reset(); // Reset de WDT
   // Make a connection
+
   if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY)
   {
     Serial.println("No connection with T-Mobile");
+    writeToLogFile("No connection with T-Mobile");
     connectNB();
   }
 
@@ -233,14 +287,15 @@ void loop()
   if (!mqttClient.connected())
   {
     Serial.println("No connection with Azure");
+    writeToLogFile("No connection with Azure");
     connectMQTT();
   }
 
   blinkLed(2);
   Serial.println("Device is registred. Starting measurements now.");
 
-
   Serial.println("Reading ports");
+  
   getSensorData();
 
   // If the current measurementPointer is greater od equal then the buffer then send the data toi Azure.
@@ -249,19 +304,37 @@ void loop()
   // Serial.print("Default number of measurements");
   // Serial.println(params._defaultNumberOfMeasurements);
 
-  Serial.println("Send message to IOT-HUB");
-  publishMessage();
+  Serial.println("Checking signal strength");
+  writeToLogFile("No connection with T-Mobile");
+
+  Serial.print("Signal strength:");
+  Serial.print(nbScanner.getSignalStrength().toInt());
+  Serial.println(" dB");
+
+  if (nbScanner.getSignalStrength().toInt() < 99 )
+  {
+    Serial.println("Send message to IOT-HUB");
+    writeToLogFile("Send message to IOT-HUB");
+    mqttClient.poll();
+    sodaq_wdt_safe_delay(500);
+    publishMessage();
+  }
+  else
+  {
+    Serial.println("Not enough signal to send to Azure");
+    writeToLogFile("Not enough signal to send to Azure");  
+  }
+
   Serial.println("Entering waiting loop...");
   sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
   repeatCounter = repeatCounter + 1;
-
-  Serial.print("Free memory:");
-  int free = freeMemory();
-  wdtCounter += 1;
-  Serial.print(free);
-
 }
 
+//=================================================================================================
+// Function:    getTime
+// Return:
+// Description: Get time from NarrowBand module
+//=================================================================================================
 unsigned long getTime()
 {
   // get the current time from the cellular module
@@ -269,9 +342,11 @@ unsigned long getTime()
   return nbAccess.getTime();
 }
 
-/**
- * Prints a boot-up message that includes project name, version and Cpu reset cause.
- */
+//=================================================================================================
+// Function:    printBootUpMessage
+// Return:      -
+// Description: Prints a boot-up message that includes project name, version and Cpu reset cause.
+//=================================================================================================
 static void printBootUpMessage(Stream &stream)
 {
   stream.println("** " PROJECT_NAME " - " VERSION " **");
@@ -284,6 +359,11 @@ static void printBootUpMessage(Stream &stream)
   stream.println();
 }
 
+//=================================================================================================
+// Function:    onConfigReset
+// Return:
+// Description: [CALLBACK] The config has been reset, fill with default data
+//=================================================================================================
 void onConfigReset(void)
 {
 
@@ -378,9 +458,11 @@ void onConfigReset(void)
 #endif
 }
 
-/**
- * Shows and handles the boot up commands.
- */
+//=================================================================================================
+// Function:    handleBootUpCommands
+// Return:      -
+// Description: Shows and handles the boot up commands.
+//=================================================================================================
 void handleBootUpCommands()
 {
   do
@@ -392,6 +474,11 @@ void handleBootUpCommands()
   params.commit();
 }
 
+//=================================================================================================
+// Function:    publishSettings
+// Return:      -
+// Description: Send all settings to Azure cloud
+//=================================================================================================
 void publishSettings()
 {
   unsigned long timeStamp = getTime();
@@ -452,6 +539,11 @@ void publishSettings()
   Serial.println("End sending data");
 }
 
+//=================================================================================================
+// Function:    sendErrorToEndpoint
+// Return:      -
+// Description: Send error to MQTT client
+//=================================================================================================
 void sendErrorToEndpoint()
 {
   Serial.println("WDT save delay in sendError");
@@ -482,87 +574,24 @@ void sendErrorToEndpoint()
   Error = "";
 }
 
-double getMultiplier(int portNumber)
-{
-  const float multiplier_1 = 0.125F;
-  const float multiplier_2 = 0.06250F;
-  const float multiplier_4 = 0.03125F;
-  const float multiplier_8 = 0.015625;
-  const float multiplier_16 = 0.0078125F;
-  int gain = 0;
 
-  if (portNumber >= 0 && portNumber <= 3)
-  {
-    gain = params._gain_1;
-  }
-  else if (portNumber >= 4 && portNumber <= 7)
-  {
-    gain = params._gain_2;
-  }
-
-  if (gain == 1)
-  {
-    return multiplier_1;
-  }
-  else if (gain == 2)
-  {
-    return multiplier_2;
-  }
-  else if (gain == 4)
-  {
-    return multiplier_4;
-  }
-  else if (gain == 8)
-  {
-    return multiplier_8;
-  }
-  else if (gain == 16)
-  {
-    return multiplier_16;
-  }
-  return 0.0F;
-}
-
-/*
-  Verstuur de berichten die in het buffer zitten naar het MQTT endpoint in azure.
-*/
+//=================================================================================================
+// Function:    publishMessage
+// Return:      -
+// Description: Send data message to MQTT azure cloud
+//=================================================================================================
 void publishMessage()
 {
-  // sodaq_wdt_disable();
 
-  /* Defintions of the multipliers */
-
-  /* Send all message in the array record to azure. */
-
-  // if (wdtCounter > 3) {
-  //   Serial.println("Testing WDT");
-  //   while(1) {};
-  // } else {
-  //   Serial.println("WDT not calling");
-  // }
-
-
-
-  // sodaq_wdt_disable();
-  // delay(500);
-  // sodaq_wdt_enable(WDT_PERIOD_8X);
-
-  mqttClient.poll();
-
-  Serial.println("EDT Set for 8 sec");
+  int signalStrength;
+  signalStrength = nbScanner.getSignalStrength().toInt();
 
   unsigned long timeStamp = getTime();
-  //String endPoint;
-  //String jsonString;
   String deviceId;
   deviceId = params.getDeviceName();
 
-  //String Status = "Succes";
-  //String Message = "";
-
   Serial.println("*** Entering publish message ***");
 
-  //deviceId = params.getDeviceName();
   Serial.print("Name of device:");
   Serial.println(params.getDeviceName());
 
@@ -578,6 +607,9 @@ void publishMessage()
   strcat(sendBuffer, "\"Timestamp\":");
   strcat(sendBuffer, String(getTime()).c_str() );
   strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"P1\":");
+  strcat(sendBuffer, String((P1)).c_str());
+  strcat(sendBuffer,",");
   strcat(sendBuffer, "\"CO2\":");
   strcat(sendBuffer, String((CO2)).c_str());
   strcat(sendBuffer,",");
@@ -587,9 +619,26 @@ void publishMessage()
   strcat(sendBuffer, "\"T\":");
   strcat(sendBuffer, String((T)).c_str());
   strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"P5\":");
+  strcat(sendBuffer, String((P5)).c_str());
+  strcat(sendBuffer,",");
   strcat(sendBuffer, "\"NH3\":");
   strcat(sendBuffer, String((NH3)).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"P7\":");
+  strcat(sendBuffer, String((P7)).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"P8\":");
+  strcat(sendBuffer, String((P8)).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"RC\":");
+  strcat(sendBuffer, String((lastResetCause)).c_str());
+  strcat(sendBuffer,",");
+  strcat(sendBuffer, "\"SS\":");
+  strcat(sendBuffer, String((signalStrength)).c_str());
   strcat(sendBuffer, "}");
+
+  
 
   Serial.println("Format send to MQTT");
   Serial.println(sendBuffer);
@@ -603,6 +652,11 @@ void publishMessage()
   Serial.println("End sending data");
 }
 
+//=================================================================================================
+// Function:    connectMQTT
+// Return:      -
+// Description: Connect to the MQTT Azure server
+//=================================================================================================
 void connectMQTT()
 {
 
@@ -626,6 +680,9 @@ void connectMQTT()
     Serial.print(".");
     Serial.println(mqttClient.connectError());
     sodaq_wdt_safe_delay(5000);
+    if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY) {
+      connectNB();
+    }
   }
 
   Serial.println();
@@ -641,25 +698,49 @@ void connectMQTT()
 //  sodaq_wdt_enable(WDT_PERIOD_8X);
 }
 
-/* Lees de datauit van de methaan sensor. Omdat nog niet duidelijk hoe dit wordt gedaan wordt er hier een random getal genomen tussen de 0 en 10000. */
+//=================================================================================================
+// Function:    getSensorData
+// Return:      -
+// Description: Read out ADC values
+//=================================================================================================
 void getSensorData()
 {
   Serial.println("Reading ADC converters....");
+  writeToLogFile("Reading ADC converters....");
   int16_t value;
 
+  P1 = ads1115_48.readADC_SingleEnded(3);
+  Serial.println("Reading P1");
+  sodaq_wdt_safe_delay(200);
 
   CO2 = ads1115_48.readADC_SingleEnded(2);
   Serial.println("Reading CO2");
-  sodaq_wdt_safe_delay(1000);
+  sodaq_wdt_safe_delay(200);
+
   H = ads1115_48.readADC_SingleEnded(1);
   Serial.println("Reading H....");
-  sodaq_wdt_safe_delay(1000);
+  sodaq_wdt_safe_delay(200);
+
   T = ads1115_48.readADC_SingleEnded(0);
   Serial.println("Reading Temp....");
-  sodaq_wdt_safe_delay(1000);
+  sodaq_wdt_safe_delay(200);
+
+  P5 = ads1115_49.readADC_SingleEnded(3);
+  Serial.println("Reading P5....");
+  sodaq_wdt_safe_delay(200);
+
   NH3 = ads1115_49.readADC_SingleEnded(2);
   Serial.println("Reading NH3....");
-  sodaq_wdt_safe_delay(1000);
+  sodaq_wdt_safe_delay(200);
+
+  P7 = ads1115_49.readADC_SingleEnded(1);
+  Serial.println("Reading P7....");
+  sodaq_wdt_safe_delay(200);
+
+  P8 = ads1115_49.readADC_SingleEnded(0);
+  Serial.println("Reading p8....");
+  sodaq_wdt_safe_delay(200);
+
   MeasurementTime = getTime();
 
 /* Send values to display */
@@ -670,7 +751,7 @@ void getSensorData()
   Serial.print("NH3 :"); Serial.println(NH3);
   Serial.println("**************************************************************************** ");
 
-
+  writeToDataFile(MeasurementTime, H, T, CO2, NH3, P1, P5, P7, P8);
 
   if (params._isLedEnabled)
   {
@@ -679,18 +760,19 @@ void getSensorData()
   //record->time = getTime();
 }
 
-/*
- * OnMessageReceived:
- *
- * Set variables from Azure.
- */
+//=================================================================================================
+// Function:    onMessageReceived
+// Return:      -
+// Description: Set variables from Azure.
+//=================================================================================================
 void onMessageReceived(int messageSize)
 {
 
   bool needsReboot = false;
 
   // we received a message, print out the topic and contents
-  Serial.print("Received a message with topic '");
+  Serial.print("Received a message with topic");
+  writeToLogFile("Received a message with topic");
 
   char str[messageSize + 1];
   int ii = 0;
@@ -701,6 +783,7 @@ void onMessageReceived(int messageSize)
   str[ii] = 0; // Terminate de string met een 0
   Serial.print(str);
   Serial.println();
+  writeToLogFile(str);
 
   // Copy the string in a json document
   StaticJsonDocument<512> doc;
@@ -750,12 +833,14 @@ void onMessageReceived(int messageSize)
       if (needsReboot)
       {
         Serial.println("Rebooting device....");
+        writeToLogFile("Rebooting device on request");
         resetFunc();
       }
     }
     else if (strcmp(_type, "Info") == 0)
     {
       Serial.println("Asking for info. Sending settings to Azure.");
+      writeToLogFile("Sending info to Azure");
       publishSettings();
     }
     else
@@ -787,12 +872,80 @@ void blinkLed(int times)
   }
 }
 
+//=================================================================================================
+// Function:    writeToLogFile
+// Return:      -
+// Description: Write string to logfile on SD Card. 
+//=================================================================================================
+void writeToLogFile(String message)
+{
+  String logfileName = "rdfv.log";
+
+  if (sdPresent) {
+    Serial.print("Writing :");
+    Serial.print(message);
+    Serial.println(" to logile");
+
+    File logFile = SD.open(logfileName, FILE_WRITE);
+    if (logFile) {
+      Serial.println("Write log");
+      logFile.println(message);
+      logFile.close();
+    }
+  }
+}
+
+//=================================================================================================
+// Function:    writeToLogFile
+// Return:      -
+// Description: Write string to logfile on SD Card. 
+//=================================================================================================
+void writeToDataFile(unsigned long time, int16_t H, int16_t T, int16_t CO2, int16_t NH3, int16_t P1, int16_t P5, int16_t P7, int16_t P8)
+{
+  Serial.println("Write to datafile");
+  String datafileName = "rdfv.dat";
+  if (sdPresent) {
+    File dataFile = SD.open(datafileName, FILE_WRITE);
+    dataFile.print(time);
+    dataFile.print(",");
+    dataFile.print(H);
+    dataFile.print(",");
+    dataFile.print(T);
+    dataFile.print(",");
+    dataFile.print(CO2);
+    dataFile.print(",");
+    dataFile.print(NH3);
+    dataFile.print(",");
+    dataFile.print(P1);
+    dataFile.print(",");
+    dataFile.print(P5);
+    dataFile.print(",");
+    dataFile.print(P7);
+    dataFile.print(",");
+    dataFile.println(P8);
+    dataFile.close();
+  }
+}
+//=================================================================================================
+// Function:    connectNB
+// Return:      -
+// Description: Check if the NarrowBand connection is active, if not, try to reconnect!
+//=================================================================================================
 void connectNB()
 {
   Serial.println("Attempting to connect to the cellular network");
+  writeToLogFile("Attempting to connect to the cellular network");
 
   Serial.println("Disable WDT");
   sodaq_wdt_disable();
+
+  //Connect only to T-Mobile if the signal strength is OK
+  while ( (nbScanner.getSignalStrength().toInt() < MIN_SIGNAL_STRENGTH) || (nbScanner.getSignalStrength().toInt() == NO_SIGNAL_STRENGTH) )
+    {
+        Serial.println("No signal!");
+        writeToLogFile("No signal in connectNB method");
+        delay(500);
+    }
 
   while ((nbAccess.begin(params._pinnumber, params._apn, true) != NB_READY) ||
          (gprs.attachGPRS() != GPRS_READY))
@@ -806,30 +959,44 @@ void connectNB()
   sodaq_wdt_enable(WDT_PERIOD_8X);
 
   Serial.println("You're connected to the cellular network");
+  writeToLogFile("You're connected to the cellular network");
   Serial.println(); 
 }
 
+//=================================================================================================
+// Function:    setupModem
+// Return:      -
+// Description: set the Modem
+//=================================================================================================
 void setupModem()
 {
   Serial.println("Waiting for modem to get ready...");
+  writeToLogFile("Waiting for modem to get ready...");
+
   MODEM.begin();
   while (!MODEM.noop())
     ;
 
   /* Disconnect from any networks. */
   Serial.print("Disconnecting from network: ");
+  writeToLogFile("Disconnecting from network: ");
+
   MODEM.sendf("AT+COPS=2");
   MODEM.waitForResponse(2000);
   Serial.println("done.");
 
   // Set Radio Access Technology (RAT). For this demo it will be set on Cat M1 (LTE-M)
   Serial.println("Set Radio Access Technology to LTE-M");
+  writeToLogFile("Set Radio Access Technology to LTE-M");
+
   MODEM.sendf("AT+URAT=7");
   MODEM.waitForResponse(100, &response);
   Serial.println("done.");
 
   // Save changes to the modem.
   Serial.print("Applying changes and saving configuration: ");
+  writeToLogFile("Applying changes and saving configuration: ");
+
   MODEM.sendf("AT+CFUN=15");
   do
   {
@@ -840,6 +1007,8 @@ void setupModem()
   Serial.println("done.");
 
   Serial.println("Modem ready, turn radio on in order to configure it...");
+  writeToLogFile("Modem ready, turn radio on in order to configure it...");
+
   MODEM.sendf("AT+CFUN=1");
   do
   {
@@ -851,6 +1020,8 @@ void setupModem()
 
   // Wait for a good signal strength (between 0 and 98)
   Serial.println("Check attachment until CSQ RSSI indicator is less than 99...");
+  writeToLogFile("Check attachment until CSQ RSSI indicator is less than 99...");
+
   int status = 99;
   while (status > 31)
   {
@@ -873,6 +1044,8 @@ void setupModem()
   // dataFile = SD.open(logFile, FILE_WRITE);			// toegevoegd Carltech
   // dataFile.println("Set operator to T-Mobile...");
   Serial.println("Set operator to KPN...");
+  writeToLogFile("Set operator to KPN...");
+
   //MODEM.sendf("AT+COPS=1,2,\"20416\"");
   MODEM.sendf("AT+COPS=1,2,\"20408\"");
   MODEM.waitForResponse(2000, &response);

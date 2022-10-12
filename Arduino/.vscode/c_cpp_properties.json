@@ -34,6 +34,7 @@
                 "C:\\Arduino15\\libraries\\Adafruit_BusIO",
                 "C:\\Arduino15\\libraries\\ArduinoJson\\src",
                 "C:\\Users\\seige001\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.8.13\\libraries\\SPI",
+                "C:\\Program Files (x86)\\Arduino\\libraries\\SD\\src",
                 "c:\\users\\seige001\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\7-2017q4\\arm-none-eabi\\include\\c++\\7.2.1",
                 "c:\\users\\seige001\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\7-2017q4\\arm-none-eabi\\include\\c++\\7.2.1\\arm-none-eabi",
                 "c:\\users\\seige001\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\7-2017q4\\arm-none-eabi\\include\\c++\\7.2.1\\backward",

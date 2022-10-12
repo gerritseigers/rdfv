@@ -152,4 +152,14 @@ c:\Projects\rdfv\output\sketch\Arduino.ino.cpp.o: \
  c:\Projects\rdfv\output\sketch\Sodaq_wdt.h \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson.h \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson.hpp \
- C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson/Configuration.hpp
+ C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson/Configuration.hpp \
+ C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\libraries\SPI/SPI.h \
+ C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/HardwareSPI.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/SD.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/SdFat.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/Sd2Card.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/Sd2PinMap.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/SdInfo.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/FatStructs.h \
+ C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/deprecated/Print.h \
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/SdFatUtil.h

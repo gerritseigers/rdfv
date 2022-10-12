@@ -74,13 +74,49 @@ namespace Wur.RDFV.Blazor.Controllers
 					}
 					catch (Exception ex) { }
 
-                    //Store data in Storage
-                    var dir = $"{deviceData.TimeStamp.Year}/{deviceData.DeviceName}/{deviceData.TimeStamp.Month}";
+					try
+					{
+						deviceData.P1 = (float)item.P1;
+					}
+					catch (Exception ex) { }
+
+					try
+					{
+						deviceData.P5 = (float)item.P5;
+					}
+					catch (Exception ex) { }
+
+					try
+					{
+						deviceData.P7 = (float)item.P7;
+					}
+					catch (Exception ex) { }
+
+					try
+					{
+						deviceData.P8 = (float)item.P8;
+					}
+					catch (Exception ex) { }
+
+					try
+					{
+						deviceData.SS = (int)item.SS;
+					}
+					catch (Exception ex) { }
+
+					try
+					{
+						deviceData.RC = (int)item.RC;
+					}
+					catch (Exception ex) { }
+
+					//Store data in Storage
+					var dir = $"{deviceData.TimeStamp.Year}/{deviceData.DeviceName}/{deviceData.TimeStamp.Month}";
                     var fileName = $"{deviceData.TimeStamp.Day}.csv";
-                    var fileHeading = "TimeStamp, Humidity, Temperature, CO2, NH3\n";
+                    var fileHeading = "TimeStamp, Humidity, Temperature, CO2, NH3, P1, P5, P7, P8, RC, Signal\n";
                     byte[] fileHeadingByteArray = Encoding.UTF8.GetBytes(fileHeading);
 
-                    var sensorData = $"{deviceData.TimeStamp},{deviceData.HUM},{deviceData.TEMP},{deviceData.CO2},{deviceData.NH3}\n";
+                    var sensorData = $" {deviceData.TimeStamp}, {deviceData.HUM}, {deviceData.TEMP}, {deviceData.CO2}, {deviceData.NH3}, {deviceData.P1}, {deviceData.P5}, {deviceData.P7}, {deviceData.P8},{deviceData.RC},{deviceData.SS}\n";
                     byte[] sensorDateByteArray = Encoding.UTF8.GetBytes(sensorData);
 
                     var dataLakeClient = new DataLakeServiceClient(datalakeConnectionString);

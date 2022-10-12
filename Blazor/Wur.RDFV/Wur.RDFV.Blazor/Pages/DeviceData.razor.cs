@@ -33,7 +33,13 @@ namespace Wur.RDFV.Blazor.Pages
 					CO2 = 0F,
 					HUM = 0F,
 					NH3 = 0F,
-					TEMP = 0F
+					TEMP = 0F,
+					P1 = 0F,
+					P5 = 0F,
+					P7 = 0F,
+					P8 = 0F,
+					SS = 0,
+					RC = 0
 				});
 			}
 		}
@@ -68,7 +74,13 @@ namespace Wur.RDFV.Blazor.Pages
 					CO2 = dataRecord.CO2,
 					HUM = dataRecord.HUM,
 					NH3 = dataRecord.NH3,
-					TEMP = dataRecord.TEMP
+					TEMP = dataRecord.TEMP,
+					P1 = dataRecord.P1,
+					P5 = dataRecord.P5,
+					P7 = dataRecord.P7,
+					P8 = dataRecord.P8,
+					SS = dataRecord.SS,
+					RC = dataRecord.RC,
 				};
 
 				AddRecordToItems(lastValueRead);
