@@ -160,9 +160,9 @@ void getSensorData();
 void onMessageReceived(int messageSize);
 #line 893 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1084 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1086 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
-#line 1091 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1093 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 int freeMemory();
 #line 149 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
@@ -357,7 +357,7 @@ void loop()
 //=================================================================================================
 // Function:    getTime
 // Return:
-// Description: Get time from NarrowBand module
+// Description: Get UTC time from Modem 
 //=================================================================================================
 unsigned long getTime()
 {
@@ -1094,9 +1094,11 @@ void setupModem()
   Serial.println("Set operator to KPN...");
   writeToLogFile("Set operator to KPN...");
 
-  //MODEM.sendf("AT+COPS=1,2,\"20416\"");
-  MODEM.sendf("AT+COPS=1,2,\"20408\"");
+  MODEM.sendf("AT+COPS=1,2,\"20416\"");
+  //MODEM.sendf("AT+COPS=1,2,\"20408\"");
   MODEM.waitForResponse(2000, &response);
+  Serial.print("Operator response: ");
+  Serial.println(response);
   Serial.println("done.");
 }
 

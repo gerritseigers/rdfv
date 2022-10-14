@@ -322,7 +322,7 @@ void loop()
 //=================================================================================================
 // Function:    getTime
 // Return:
-// Description: Get time from NarrowBand module
+// Description: Get UTC time from Modem 
 //=================================================================================================
 unsigned long getTime()
 {
@@ -1051,9 +1051,11 @@ void setupModem()
   SerialUSB.println("Set operator to KPN...");
   writeToLogFile("Set operator to KPN...");
 
-  //MODEM.sendf("AT+COPS=1,2,\"20416\"");
-  MODEM.sendf("AT+COPS=1,2,\"20408\"");
+  MODEM.sendf("AT+COPS=1,2,\"20416\"");
+  //MODEM.sendf("AT+COPS=1,2,\"20408\"");
   MODEM.waitForResponse(2000, &response);
+  SerialUSB.print("Operator response: ");
+  SerialUSB.println(response);
   SerialUSB.println("done.");
 }
 

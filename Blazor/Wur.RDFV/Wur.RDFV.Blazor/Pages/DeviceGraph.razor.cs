@@ -76,8 +76,11 @@ namespace Wur.RDFV.Blazor.Pages
 					byte[] buffer = new byte[bufferSize];
 					int count;
 					while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+					{
 						ms.Write(buffer, 0, count);
+						var f2 = Encoding.ASCII.GetString(ms.ToArray());
 
+					}
 					var f = Encoding.ASCII.GetString(ms.ToArray());
 
 					lines = f.Split('\n');
