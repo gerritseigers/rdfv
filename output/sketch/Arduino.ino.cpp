@@ -1,8 +1,12 @@
 #include <Arduino.h>
 #line 1 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
-/*
-
-*/
+/*=================================================================================================
+ * File:            17553_ArdLogger.ino
+ * Author:          G. Seigers / J. de Pagter
+ * Created date:    -
+ * Description:     Arduino program to run the MKR1500 NB with GPRS to Azure cloud (MQTT) to read
+ * some sensors for remote monitoring
+=================================================================================================*/
 
 #include <MKRNB.h>
 #include <ArduinoECCX08.h>
@@ -29,7 +33,7 @@ extern char *__brkval;
 #endif  // __arm__
 
 #define PROJECT_NAME "Project Marien"
-#define VERSION "1.0.0"
+#define VERSION "1.1.0"
 #define STARTUP_DELAY 20000 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
@@ -40,7 +44,7 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072211" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072213" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -143,23 +147,23 @@ void writeToDataFile(unsigned long time, int16_t H, int16_t T, int16_t CO2, int1
 
 void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als buffer overloopt.
 
-#line 144 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 148 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup();
-#line 264 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 268 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void loop();
-#line 482 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 486 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 706 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 710 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData();
-#line 768 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 772 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 864 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 868 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1055 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1059 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
-#line 1062 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1066 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 int freeMemory();
-#line 144 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 148 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
 {
   Serial.begin(115200);
@@ -326,16 +330,16 @@ void loop()
   Serial.println("Checking signal strength");
   writeToLogFile("No connection with T-Mobile");
 
-  Serial.print("Signal strength:");
-  Serial.print(nbScanner.getSignalStrength().toInt());
-  Serial.println(" dB");
+  String signalStrength = "Signal strength :" + String(nbScanner.getSignalStrength().toInt()) + " db";
+  Serial.println(signalStrength);
 
-  if (nbScanner.getSignalStrength().toInt() < 99 )
+  writeToLogFile(signalStrength);
+  if (nbScanner.getSignalStrength().toInt() != NO_SIGNAL_STRENGTH && nbScanner.getSignalStrength().toInt() > MIN_SIGNAL_STRENGTH  )
   {
-    Serial.println("Send message to IOT-HUB");
-    writeToLogFile("Send message to IOT-HUB");
+    Serial.println("Send message to IOT-HUB enough signal strength");
+    writeToLogFile("Send message to IOT-HUB enough signal strength");
     mqttClient.poll();
-    sodaq_wdt_safe_delay(500);
+    sodaq_wdt_safe_delay(200);
     publishMessage();
   }
   else

@@ -42,7 +42,7 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072211" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072213" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -311,16 +311,16 @@ void loop()
   Serial.println("Checking signal strength");
   writeToLogFile("No connection with T-Mobile");
 
-  Serial.print("Signal strength:");
-  Serial.print(nbScanner.getSignalStrength().toInt());
-  Serial.println(" dB");
+  String signalStrength = "Signal strength :" + String(nbScanner.getSignalStrength().toInt()) + " db";
+  Serial.println(signalStrength);
 
-  if (nbScanner.getSignalStrength().toInt() < 99 )
+  writeToLogFile(signalStrength);
+  if (nbScanner.getSignalStrength().toInt() != NO_SIGNAL_STRENGTH && nbScanner.getSignalStrength().toInt() > MIN_SIGNAL_STRENGTH  )
   {
-    Serial.println("Send message to IOT-HUB");
-    writeToLogFile("Send message to IOT-HUB");
+    Serial.println("Send message to IOT-HUB enough signal strength");
+    writeToLogFile("Send message to IOT-HUB enough signal strength");
     mqttClient.poll();
-    sodaq_wdt_safe_delay(500);
+    sodaq_wdt_safe_delay(200);
     publishMessage();
   }
   else

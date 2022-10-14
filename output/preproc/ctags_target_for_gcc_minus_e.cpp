@@ -1,14 +1,18 @@
 # 1 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
-/*
+/*=================================================================================================
 
+ * File:            17553_ArdLogger.ino
 
+ * Author:          G. Seigers / J. de Pagter
 
-*/
-# 5 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
-# 6 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
-# 7 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
-# 8 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
-# 9 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+ * Created date:    -
+
+ * Description:     Arduino program to run the MKR1500 NB with GPRS to Azure cloud (MQTT) to read
+
+ * some sensors for remote monitoring
+
+=================================================================================================*/
+# 9 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 # 10 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 11 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 12 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
@@ -21,11 +25,15 @@
 # 19 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 20 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 21 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 22 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 23 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 24 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 25 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 
 
 // should use uinstd.h to define sbrk but Due causes a conflict
 extern "C" char* sbrk(int incr);
-# 51 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 55 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 //#define PORT1 "T"
 
 
@@ -285,16 +293,16 @@ void loop()
   SerialUSB.println("Checking signal strength");
   writeToLogFile("No connection with T-Mobile");
 
-  SerialUSB.print("Signal strength:");
-  SerialUSB.print(nbScanner.getSignalStrength().toInt());
-  SerialUSB.println(" dB");
+  String signalStrength = "Signal strength :" + String(nbScanner.getSignalStrength().toInt()) + " db";
+  SerialUSB.println(signalStrength);
 
-  if (nbScanner.getSignalStrength().toInt() < 99 )
+  writeToLogFile(signalStrength);
+  if (nbScanner.getSignalStrength().toInt() != 99 /* What signal is detected when modem starts with no antenne or still initializing*/ && nbScanner.getSignalStrength().toInt() > 15 /* get from modem the detected carrier (31 > 51 dBm)*/ )
   {
-    SerialUSB.println("Send message to IOT-HUB");
-    writeToLogFile("Send message to IOT-HUB");
+    SerialUSB.println("Send message to IOT-HUB enough signal strength");
+    writeToLogFile("Send message to IOT-HUB enough signal strength");
     mqttClient.poll();
-    sodaq_wdt_safe_delay(500);
+    sodaq_wdt_safe_delay(200);
     publishMessage();
   }
   else
@@ -327,7 +335,7 @@ unsigned long getTime()
 //=================================================================================================
 static void printBootUpMessage(Stream &stream)
 {
-  stream.println("** " "Project Marien" " - " "1.0.0" " **");
+  stream.println("** " "Project Marien" " - " "1.1.0" " **");
 
   stream.println();
 
@@ -352,7 +360,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072211" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072213" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -425,7 +433,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 459 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 463 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 //=================================================================================================

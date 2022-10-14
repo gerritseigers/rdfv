@@ -51,6 +51,20 @@ else
             }
         </table>
     </div>
+
+    <div class="row">
+      <RadzenChart  style="width: 100%" >
+          <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Solid" ValueProperty="SS" Stroke="#333333" Fill="#6AADE4">
+		     <RadzenMarkers MarkerType="MarkerType.Triangle" Size="3" Fill="#333333" />
+		</RadzenAreaSeries>
+        <RadzenLegend Visible="false" />
+		<RadzenCategoryAxis Padding="20" />
+		<RadzenValueAxis Min="0" Max="100" Step="10">
+			<RadzenGridLines Visible="true" />
+			<RadzenAxisTitle Text="Signal Strength dB" />
+		</RadzenValueAxis>
+      </RadzenChart>
+    </div>
     
     <div class="row">
       <RadzenChart  style="width: 100%" >
@@ -94,7 +108,7 @@ else
       </RadzenChart>
     </div>
 
-       <div class="row">
+     <div class="row">
       <RadzenChart style="width: 100%">
           <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Solid" ValueProperty="NH3" Stroke="#333333" Fill="#005172">
 		     <RadzenMarkers MarkerType="MarkerType.Triangle" Size="3" Fill="#333333" />

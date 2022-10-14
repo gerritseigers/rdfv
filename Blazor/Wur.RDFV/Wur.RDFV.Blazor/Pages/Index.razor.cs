@@ -30,7 +30,10 @@ namespace Wur.RDFV.Blazor.Pages
 			MyNavigationManager.NavigateTo($"/DeviceData/{deviceId}");
 		}
 
-
+		void OpenGraph(string deviceId)
+		{
+			MyNavigationManager.NavigateTo($"/DeviceGraph/{deviceId}");
+		}
 	}
 }
 

@@ -1,0 +1,129 @@
+﻿@page "/deviceGraph/{deviceId}"
+
+<h1>Graphs for device @deviceId</h1>
+
+<div class="row">
+    <div class="col-lg-6 col-xl-4 p-3">
+        <RadzenCard>
+            <RadzenDatePicker @bind-Value=@value DateFormat="dd-MM-yyyy" Change=@(args => OnChange(args, "DatePicker", "MM/dd/yyyy")) Class="w-100" />
+        </RadzenCard>
+    </div>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="SS" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="50" Step="10">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="Signal Strength dB" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dotted" ValueProperty="CO2" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="2000" Step="200">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="CO2" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="HUM" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="Humidity" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="NH3" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="Amoniac" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="TEMP" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="Temperature" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="P1" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="P1" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="P5" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="P5" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="P7" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="P7" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
+<div class="row">
+    <RadzenChart  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="P8" Stroke="#333333" Fill="#6AADE4">
+	</RadzenAreaSeries>
+    <RadzenLegend Visible="false" />
+	<RadzenCategoryAxis Padding="20" />
+	<RadzenValueAxis Min="0" Max="1000" Step="100">
+		<RadzenGridLines Visible="true" />
+		<RadzenAxisTitle Text="P8" />
+	</RadzenValueAxis>
+    </RadzenChart>
+</div>
+
