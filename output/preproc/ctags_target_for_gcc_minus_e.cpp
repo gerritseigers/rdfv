@@ -29,11 +29,14 @@
 # 23 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 24 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 # 25 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
+# 26 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino" 2
 
 
+
+# 28 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 // should use uinstd.h to define sbrk but Due causes a conflict
 extern "C" char* sbrk(int incr);
-# 55 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 56 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 //#define PORT1 "T"
 
 
@@ -323,9 +326,33 @@ void loop()
 //=================================================================================================
 unsigned long getTime()
 {
-  // get the current time from the cellular module
-  SerialUSB.println("Getting the time...");
-  return nbAccess.getTime();
+
+  struct tm t = {0};
+  time_t epoch;
+  int YEAR, MONTH, DAY, HOUR, MINUTE, SECONDS, TZ;
+  char timeBuffer[50];
+
+  MODEM.send("AT+CCLK?");
+  MODEM.waitForResponse(2000, &response);
+  SerialUSB.print("Time: ");
+  SerialUSB.println(response);
+
+  int x = response.indexOf(String('"'))+1; //Get rit of AT stuff
+  int y = response.lastIndexOf(String('"'));
+  response.substring(x,y).toCharArray(timeBuffer,50); //Write string to char buffer
+
+  //const char *timeData = "22/03/02,14:17:40+22"; 
+  sscanf(timeBuffer, "%d/%d/%d,%d:%d:%d+%d", &YEAR, &MONTH, &DAY, &HOUR, &MINUTE, &SECONDS, &TZ);
+
+  t.tm_year = YEAR + 100;
+  t.tm_mon = MONTH - 1;
+  t.tm_mday = DAY;
+  t.tm_hour = HOUR;
+  t.tm_min = MINUTE;
+  t.tm_sec = SECONDS;
+  epoch = mktime(&t); // -19800 TZ correction To get UTC
+
+  return ((unsigned long)epoch);
 }
 
 //=================================================================================================
@@ -360,7 +387,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072213" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072210" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -433,7 +460,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 463 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 488 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 //=================================================================================================

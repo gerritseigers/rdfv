@@ -24,6 +24,7 @@
 #include <cstring>
 #include <SPI.h>
 #include <SD.h>
+#include <time.h>
 
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
@@ -44,7 +45,7 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072213" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072210" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1
@@ -147,23 +148,23 @@ void writeToDataFile(unsigned long time, int16_t H, int16_t T, int16_t CO2, int1
 
 void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als buffer overloopt.
 
-#line 148 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 149 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup();
-#line 268 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 269 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void loop();
-#line 486 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 511 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 710 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 735 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData();
-#line 772 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 797 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 868 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 893 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1059 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1084 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
-#line 1066 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1091 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 int freeMemory();
-#line 148 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 149 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
 {
   Serial.begin(115200);
@@ -360,9 +361,33 @@ void loop()
 //=================================================================================================
 unsigned long getTime()
 {
-  // get the current time from the cellular module
-  Serial.println("Getting the time...");
-  return nbAccess.getTime();
+
+  struct tm t = {0};
+  time_t epoch;
+  int YEAR, MONTH, DAY, HOUR, MINUTE, SECONDS, TZ;
+  char timeBuffer[50];
+
+  MODEM.send("AT+CCLK?");
+  MODEM.waitForResponse(2000, &response);
+  Serial.print("Time: ");
+  Serial.println(response);
+
+  int x = response.indexOf(String('"'))+1;                  //Get rit of AT stuff
+  int y = response.lastIndexOf(String('"'));
+  response.substring(x,y).toCharArray(timeBuffer,50);       //Write string to char buffer
+
+  //const char *timeData = "22/03/02,14:17:40+22"; 
+  sscanf(timeBuffer, "%d/%d/%d,%d:%d:%d+%d", &YEAR, &MONTH, &DAY, &HOUR, &MINUTE, &SECONDS, &TZ);
+
+  t.tm_year = YEAR + 100;
+  t.tm_mon = MONTH - 1;
+  t.tm_mday = DAY;
+  t.tm_hour = HOUR;
+  t.tm_min = MINUTE;
+  t.tm_sec = SECONDS;
+  epoch = mktime(&t);     // -19800 TZ correction To get UTC
+
+  return ((unsigned long)epoch);
 }
 
 //=================================================================================================
