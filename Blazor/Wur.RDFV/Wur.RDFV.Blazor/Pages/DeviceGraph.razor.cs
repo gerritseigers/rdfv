@@ -28,20 +28,22 @@ namespace Wur.RDFV.Blazor.Pages
 		[Parameter]
 		public string deviceId { get; set; }
 
-
+		private RadzenChart SS_Chart { get; set; }
 		DateTime? value = DateTime.Now;
 		DateTime[] datum = new DateTime[1000];
-		int[] CO2 = new int[1000];		
-		int[] HUM =new int [1000];
+		int[] CO2 = new int[1000];
+		int[] HUM = new int[1000];
 		public List<StableData> items { get; set; } = new List<StableData>();
+		int[] classification = new int[100];
 
-		public string datalakeConnectionString = "DefaultEndpointsProtocol=https;AccountName=euwstoragerdfvp;AccountKey=STtBvcqG0/y7Q/chtibsgrXsYqxuTfm5MhrxPbxvfb9cqhZuuMfeN6fXrSh1gzZomFtXq0SHoNPu+ASt0Dfszg==;EndpointSuffix=core.windows.net";
+		public string datalakeConnectionString = "DefaultEndpointsProtocol=https;AccountName=euwstoragerdfvpr;AccountKey=cj2U6mdlHt3BpliwTjNKXrbwIXNJvZ8LHxnF2EB4VtXRARIXw0cc2Ic/hstSx0fvOmCCf1kCWyvX+AStE/t9yA==;EndpointSuffix=core.windows.net";
 
 		public async Task OnChange(DateTime? value, string name, string format)
 		{
 			await ReadDataFile(deviceId, (DateTime) value);
 
 			var a = items;
+			SS_Chart.Reload();
 					
 			InvokeAsync(() => StateHasChanged());
 		}
@@ -60,7 +62,7 @@ namespace Wur.RDFV.Blazor.Pages
 			var fileSystemClient = dataLakeClient.GetFileSystemClient("data");
 			DataLakeDirectoryClient directory = fileSystemClient.GetDirectoryClient(dir);
 			var fileSystem = directory.GetFileClient(fileName);
-
+			items = new List<StableData>();
 
 			if (fileSystem.Exists())
 			{
@@ -81,10 +83,12 @@ namespace Wur.RDFV.Blazor.Pages
 						var f2 = Encoding.ASCII.GetString(ms.ToArray());
 
 					}
+					await ms.FlushAsync();
 					var f = Encoding.ASCII.GetString(ms.ToArray());
 
 					lines = f.Split('\n');
 					var counter = 0;
+					classification = new int[100];
 					foreach (var line in lines)
 					{
 						if (counter != 0)
@@ -92,14 +96,15 @@ namespace Wur.RDFV.Blazor.Pages
 							data = line.Split(',');
 							if (data.Length > 8)
 							{
+								classification[Convert.ToInt16(data[10])] += 1;
 								items.Add(new StableData
 								{
 									Sequence = counter,
-									//TimeStamp = System.Convert.ToDateTime(data[0]),
-									CO2 = System.Convert.ToInt16(data[1]),
-									HUM = System.Convert.ToInt16(data[2]),
-									NH3 = System.Convert.ToInt16(data[3]),
-									TEMP = System.Convert.ToInt16(data[4]),
+									TimeStamp = System.Convert.ToDateTime(data[0]),
+									HUM = System.Convert.ToInt16(data[1]),
+									TEMP = System.Convert.ToInt16(data[2]),
+									CO2 = System.Convert.ToInt16(data[3]),
+									NH3 = System.Convert.ToInt16(data[4]),
 									P1 = System.Convert.ToInt16(data[5]),
 									P5 = System.Convert.ToInt16(data[6]),
 									P7 = System.Convert.ToInt16(data[7]),

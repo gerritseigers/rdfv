@@ -11,8 +11,8 @@
 </div>
 
 <div class="row">
-    <RadzenChart  style="width: 100%" >
-        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" LineType="LineType.Dashed" ValueProperty="SS" Stroke="#333333" Fill="#6AADE4">
+    <RadzenChart @ref="SS_Chart"  style="width: 100%" >
+        <RadzenAreaSeries Smooth=true Data="@items" CategoryProperty="Sequence" ValueProperty="SS" Stroke="#333333" Fill="#6AADE4">
 	</RadzenAreaSeries>
     <RadzenLegend Visible="false" />
 	<RadzenCategoryAxis Padding="20" />

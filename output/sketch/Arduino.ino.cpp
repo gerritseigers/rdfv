@@ -45,7 +45,7 @@ extern char *__brkval;
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072210" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072211" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
 #define USE_GPS 1
 #define USE_LED 1

@@ -387,7 +387,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072210" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072211" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 

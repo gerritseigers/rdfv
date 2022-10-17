@@ -48,7 +48,7 @@ namespace Wur.RDFV.Blazor.Controllers
 					//Get the name of the device
 					deviceData.DeviceName = item.DeviceName;
 
-					DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt32(item.Timestamp) + 7200);
+					DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt32(item.Timestamp));
 					deviceData.TimeStamp = dateTimeOffset.DateTime;
 					try
 					{
