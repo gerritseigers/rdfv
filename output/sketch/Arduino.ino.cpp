@@ -15,16 +15,15 @@
 #include <Adafruit_ADS1X15.h>
 #include <Modem.h>
 #include <utility/ECCX08SelfSignedCert.h>
-#include "iot_configs.h"
 #include "Params.h"
 #include "BootMenu.h"
-#include "DataRecord.h"
 #include "Sodaq_wdt.h"
 #include <ArduinoJson.h>
 #include <cstring>
 #include <SPI.h>
 #include <SD.h>
 #include <time.h>
+#include <RTCZero.h>
 
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
@@ -35,18 +34,20 @@ extern char *__brkval;
 
 #define PROJECT_NAME "Project Marien"
 #define VERSION "1.1.0"
-#define STARTUP_DELAY 20000 // 20 seconden om te booten
+#define STARTUP_DELAY 2 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
-#define MAX_NUMBER_OF_MEASUREMENTS 15 // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define DEFAULT_MEASUREMENT_INTERVAL   8000
-#define DEFAULT_NUMBER_OF_MEASUREMENTS 1
-#define DEFAULT_REPEATS 60000
+#define MAX_NUMBER_OF_MEASUREMENTS              60      // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
+#define START_NUMBER_OF_MEASUREMENTS_THRESHOLD  15      //Aantal metingen voordat er wordt geprobeerd om de data te versturen.
+#define DEFAULT_MEASUREMENT_INTERVAL            59000   //aantal ms voordat de er een nieuwe meting wordt uitgevoerd.
+#define DEFAULT_NUMBER_OF_MEASUREMENTS          1
+#define SEND_TO_IOTHUB                          1       //Moet de data worden verstuurd naar Azure.        
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072211" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define DEVICE_NAME "A04072209" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
 #define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
+
 #define USE_GPS 1
 #define USE_LED 1
 #define PIN_NUMBER "915684"
@@ -73,16 +74,10 @@ extern char *__brkval;
 //Used for SD card
 const int chipSelect = 4;
 
-// Translate iot-configs.h defines into variabels
-static const char *host = IOT_CONFIG_IOTHUB_FQDN;
-static const char *device_id = IOT_CONFIG_DEVICE_ID;
-static const char *apn = LTE_APN;
-
 /* Define the constants for the IOTHub and T-Mobile */
 const char PINNUMBER[] = "031591"; // PIN Number
 // const char APN[]              = "iot.t-mobile.nl";                                               // APN T-Mobile
 
-const int delayBetweenMessages = 500; // Wait time im ms
 String response;
 static uint8_t lastResetCause; // Veld waarin staat wat de oorzaak is van de laatste reset.
 String IMEI = "";
@@ -91,30 +86,32 @@ String MQTTBroker = "";
 String Error = "";
 char sendBuffer[500];
 bool sdPresent = false;
-
+int measurementPointer = 0;
 // DataRecord measurements[MAX_NUMBER_OF_MEASUREMENTS];
 // int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
 //Variables for reading the ports
-int16_t  P1;
-int16_t  CO2;                //Port2 p1_2
-int16_t  H;                  //Port3 p1_3 
-int16_t  T;                  //Port4 p1_4
-int16_t  P5; 
-int16_t  NH3;                //Port6 p2_2
-int16_t  P7;
-int16_t  P8;
-int32_t  MeasurementTime;     //Time of measurement
+int16_t  P1[MAX_NUMBER_OF_MEASUREMENTS];
+int16_t  CO2[MAX_NUMBER_OF_MEASUREMENTS];                //Port2 p1_2
+int16_t  H[MAX_NUMBER_OF_MEASUREMENTS];                  //Port3 p1_3 
+int16_t  T[MAX_NUMBER_OF_MEASUREMENTS];                  //Port4 p1_4
+int16_t  P5[MAX_NUMBER_OF_MEASUREMENTS]; 
+int16_t  NH3[MAX_NUMBER_OF_MEASUREMENTS];                //Port6 p2_2
+int16_t  P7[MAX_NUMBER_OF_MEASUREMENTS];
+int16_t  P8[MAX_NUMBER_OF_MEASUREMENTS];
+int32_t  MeasurementTime[MAX_NUMBER_OF_MEASUREMENTS];     //Time of measurement
+
 int16_t  repeatCounter;      // 
 int16_t  wdtCounter;
 
-GPRS gprs;
+GPRS          gprs;
 NB            nbAccess(false);                // Set op true om te debuggen
 NBClient      nbClient;                 // Used for the TCP socket connection
 BearSSLClient sslClient(nbClient); // Used for SSL/TLS connection, integrates with ECC508
 MqttClient    mqttClient(sslClient);
 NBModem       modem;
 NBScanner     nbScanner;
+RTCZero       rtc;
 
 // Variabels for MQTT
 String username;
@@ -142,6 +139,9 @@ void sendErrorToEndpoint();
 void setupModem();
 void writeToLogFile(String message);
 void writeToDataFile(unsigned long time, int16_t H, int16_t T, int16_t CO2, int16_t NH3, int16_t P1, int16_t P5, int16_t P7, int16_t P8);
+void setTime();
+// String dataFileFromDate();
+// String logFileFromDate();
 
 // void setGain(Adafruit_ADS1115 &sensor, uint8_t gain);
 // double getMultiplier(int portNumber); // Returns the multiplier for this specific portnumber
@@ -150,38 +150,40 @@ void (*resetFunc)(void) = 0; // Functie voor harde reset. Wordt aangeroepen als 
 
 #line 149 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup();
-#line 269 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 247 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void loop();
-#line 511 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 472 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void publishSettings();
-#line 735 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 712 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void getSensorData();
-#line 797 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 742 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void onMessageReceived(int messageSize);
-#line 893 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 838 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void blinkLed(int times);
-#line 1086 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1033 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 char stringTochar(String s);
-#line 1093 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+#line 1040 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 int freeMemory();
+#line 1115 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+String dataFileFromDate();
+#line 1127 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+String logFileFromDate();
 #line 149 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 void setup()
 {
   Serial.begin(115200);
+  Serial1.begin(115200);
   
   //Initialize SD card.
   Serial.println("Initializing SD card...");
-  // see if the card is present and can be initialized:
-
   if (!SD.begin(chipSelect)) {
-    Serial.println("Card failed, or not present");
+    Serial.println("SD card failed, or not present");
     sdPresent = false;
-    // don't do anything more:
   }
   else
   {
     sdPresent = true;
-    Serial.println("card initialized.");
+    Serial.println("SD card initialized.");
   }
 
   lastResetCause = PM->RCAUSE.reg;
@@ -207,27 +209,16 @@ void setup()
   Serial.println("WDT is disabled");
   sodaq_wdt_disable();
 
-  Serial1.begin(115200);
   params.read();
-
-
-
-
-  // init params
-
-  // init params
-  // sodaq_wdt_disable();
   params.setConfigResetCallback(onConfigReset);
   params.read();
-  handleBootUpCommands();
-  // sodaq_wdt_enable(WDT_PERIOD_8X);
 
   /* Initialize the ECCX08 encrytion chip and reconstyruct the selfsigned certificate */
   if (!ECCX08.begin())
   {
-    Serial.println("No ECCX08 present!");
-    writeToLogFile("WDT reset executed!");
-    while (1);
+    Serial.println("No ECCX08 present!, reboot device");
+    writeToLogFile("No ECCX08 present!, reboot device");
+    resetFunc();
   }
   // Wait for the sensor to be ready
 
@@ -237,17 +228,8 @@ void setup()
   ArduinoBearSSL.onGetTime(getTime); // Set a callback fur the current time. So the certificate can be validated
   sslClient.setEccSlot(0, ECCX08SelfSignedCert.bytes(), ECCX08SelfSignedCert.length());
 
-  // Compose the username
-  // username += broker; username += "/"; username += deviceId; username += "/api-version=2018-06-30";
-
-  // username += params.getMQTTBroker();
-  if (params._isDeviceRegistered == true)
-  {
-    Serial.println("SETUP: Device is already registred");
-    DeviceName = params._deviceName;
-    MQTTBroker = params.getMQTTBroker();
-  }
-
+  DeviceName = params._deviceName;
+  MQTTBroker = params.getMQTTBroker();
   username += MQTTBroker;
   username += "/";
   username += DeviceName;
@@ -265,11 +247,6 @@ void setup()
   Serial1.begin(115200);
   Serial.begin(115200);
 
-  sodaq_wdt_disable();
-  Serial.println("WDT Period 8X");
-  sodaq_wdt_enable(WDT_PERIOD_8X); // WDT is gezet op 8 seconden.
-  Serial.println("WDT Reset");
-  sodaq_wdt_reset();
 
   ads1115_48.setGain(GAIN_TWO);
   ads1115_49.setGain(GAIN_TWO);
@@ -278,6 +255,11 @@ void setup()
 
   modem.begin();
   connectNB();
+  setTime();
+  Serial.println("Set the WDT to 8 seconds");
+  sodaq_wdt_enable(WDT_PERIOD_8X); // WDT is gezet op 8 seconden.
+  sodaq_wdt_reset();
+
 }
 
 //=================================================================================================
@@ -288,17 +270,7 @@ void setup()
 void loop()
 {
 
-  if (sdPresent==true){
-    Serial.println("Writing to SD file");
-  } else {
-    Serial.println("No SD present.");
-  }
-
-  Serial.println("Entering loop");
-  writeToLogFile("Entering loop");
-
-  sodaq_wdt_reset(); // Reset de WDT
-  // Make a connection
+  sodaq_wdt_reset();                                                        // Reset de WDT
 
   if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY)
   {
@@ -307,51 +279,74 @@ void loop()
     connectNB();
   }
 
-  // Controleer of de MQTT Client beschikbaar is. Als er een timeout is dan moet er iets worden gedaan? TODO
-  if (!mqttClient.connected())
-  {
-    Serial.println("No connection with Azure");
-    writeToLogFile("No connection with Azure");
-    connectMQTT();
-  }
-
   blinkLed(2);
-  Serial.println("Device is registred. Starting measurements now.");
-
-  Serial.println("Reading ports");
-  
   getSensorData();
 
-  // If the current measurementPointer is greater od equal then the buffer then send the data toi Azure.
-  // Serial.print("Measurement pointer :");
-  // Serial.println(measurementPointer);
-  // Serial.print("Default number of measurements");
-  // Serial.println(params._defaultNumberOfMeasurements);
-
-  Serial.println("Checking signal strength");
-  writeToLogFile("No connection with T-Mobile");
-
-  String signalStrength = "Signal strength :" + String(nbScanner.getSignalStrength().toInt()) + " db";
-  Serial.println(signalStrength);
-
-  writeToLogFile(signalStrength);
-  if (nbScanner.getSignalStrength().toInt() != NO_SIGNAL_STRENGTH && nbScanner.getSignalStrength().toInt() > MIN_SIGNAL_STRENGTH  )
+  if (measurementPointer >= START_NUMBER_OF_MEASUREMENTS_THRESHOLD)
   {
-    Serial.println("Send message to IOT-HUB enough signal strength");
-    writeToLogFile("Send message to IOT-HUB enough signal strength");
-    mqttClient.poll();
-    sodaq_wdt_safe_delay(200);
-    publishMessage();
+    Serial.println("measurement pointers is greater or equal the treshold");
+    writeToLogFile("measurement pointers is greater or equal the treshold");
+
+    if (measurementPointer >= MAX_NUMBER_OF_MEASUREMENTS)
+    {
+        Serial.println("Reboot arduino because buffer overflow");
+        writeToLogFile("Reboot arduino because buffer overflow");
+        resetFunc();
+    }
+    else
+    {
+      if (SEND_TO_IOTHUB == 1)
+      {
+        Serial.println("trying to send data to the IOT-HUB");
+        writeToLogFile("trying to send data to the IOT-HUB");
+
+        int signalStrength = nbScanner.getSignalStrength().toInt();
+        Serial.print("Signal strength :");
+        Serial.print(signalStrength);
+        Serial.println(" dB");
+
+        if (signalStrength != NO_SIGNAL_STRENGTH && signalStrength > MIN_SIGNAL_STRENGTH  )
+        {          
+          if (!mqttClient.connected() && SEND_TO_IOTHUB == 1)
+          {
+            Serial.println("No connection with Azure");
+            writeToLogFile("No connection with Azure");
+            connectMQTT();
+          }
+
+          Serial.println("Send message to IOT-HUB enough signal strength");
+          writeToLogFile("Send message to IOT-HUB enough signal strength");
+          publishMessage();
+          measurementPointer = 0;
+        }
+        else
+        {
+          Serial.println("To weak signal to send. Trying again in next loop");
+          writeToLogFile("To weak signal to send. Trying again in next loop");
+          measurementPointer += 1;
+        }
+      }
+      else
+      {
+        Serial.println("Not sending to Azure because of configuration setting");
+        writeToLogFile("Not sending to Azure because of configuration setting");
+        measurementPointer = 0;
+      }
+    }
   }
   else
   {
-    Serial.println("Not enough signal to send to Azure");
-    writeToLogFile("Not enough signal to send to Azure");  
+    Serial.print("Number of message in cache ");
+    Serial.print(measurementPointer);
+    Serial.print(" of ");
+    Serial.println(MAX_NUMBER_OF_MEASUREMENTS);
+
+    measurementPointer += 1;
   }
 
-  Serial.println("Entering waiting loop...");
+  Serial.println("Waiting for next measurement");
   sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
-  repeatCounter = repeatCounter + 1;
+
 }
 
 //=================================================================================================
@@ -361,33 +356,7 @@ void loop()
 //=================================================================================================
 unsigned long getTime()
 {
-
-  struct tm t = {0};
-  time_t epoch;
-  int YEAR, MONTH, DAY, HOUR, MINUTE, SECONDS, TZ;
-  char timeBuffer[50];
-
-  MODEM.send("AT+CCLK?");
-  MODEM.waitForResponse(2000, &response);
-  Serial.print("Time: ");
-  Serial.println(response);
-
-  int x = response.indexOf(String('"'))+1;                  //Get rit of AT stuff
-  int y = response.lastIndexOf(String('"'));
-  response.substring(x,y).toCharArray(timeBuffer,50);       //Write string to char buffer
-
-  //const char *timeData = "22/03/02,14:17:40+22"; 
-  sscanf(timeBuffer, "%d/%d/%d,%d:%d:%d+%d", &YEAR, &MONTH, &DAY, &HOUR, &MINUTE, &SECONDS, &TZ);
-
-  t.tm_year = YEAR + 100;
-  t.tm_mon = MONTH - 1;
-  t.tm_mday = DAY;
-  t.tm_hour = HOUR;
-  t.tm_min = MINUTE;
-  t.tm_sec = SECONDS;
-  epoch = mktime(&t);     // -19800 TZ correction To get UTC
-
-  return ((unsigned long)epoch);
+  return (rtc.getEpoch());
 }
 
 //=================================================================================================
@@ -447,10 +416,6 @@ void onConfigReset(void)
 
 #ifdef DEFAULT_NUMBER_OF_MEASUREMENTS
   params._defaultNumberOfMeasurements = DEFAULT_NUMBER_OF_MEASUREMENTS;
-#endif
-
-#ifdef DEFAULT_REPEATS
-  params._defaultRepeats = DEFAULT_REPEATS;
 #endif
 
 #ifdef USE_LED
@@ -643,61 +608,63 @@ void publishMessage()
   Serial.print("Name of device:");
   Serial.println(params.getDeviceName());
 
-  strcpy(sendBuffer, "{");
-  strcat(sendBuffer, "\"Type\":");
-  strcat(sendBuffer, "\"Data\"");
-  strcat(sendBuffer, ",");
-  strcat(sendBuffer, "\"DeviceName\":");
-  strcat(sendBuffer, "\"");
-  strcat(sendBuffer, deviceId.c_str());
-  strcat(sendBuffer,"\"");
-  strcat(sendBuffer,"," );
-  strcat(sendBuffer, "\"Timestamp\":");
-  strcat(sendBuffer, String(getTime()).c_str() );
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"P1\":");
-  strcat(sendBuffer, String((P1)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"CO2\":");
-  strcat(sendBuffer, String((CO2)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"H\":");
-  strcat(sendBuffer, String((H)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"T\":");
-  strcat(sendBuffer, String((T)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"P5\":");
-  strcat(sendBuffer, String((P5)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"NH3\":");
-  strcat(sendBuffer, String((NH3)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"P7\":");
-  strcat(sendBuffer, String((P7)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"P8\":");
-  strcat(sendBuffer, String((P8)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"RC\":");
-  strcat(sendBuffer, String((lastResetCause)).c_str());
-  strcat(sendBuffer,",");
-  strcat(sendBuffer, "\"SS\":");
-  strcat(sendBuffer, String((signalStrength)).c_str());
-  strcat(sendBuffer, "}");
+  for (int ii=0;ii<measurementPointer;ii++)
+  {
+    strcpy(sendBuffer, "{");
+    strcat(sendBuffer, "\"Type\":");
+    strcat(sendBuffer, "\"Data\"");
+    strcat(sendBuffer, ",");
+    strcat(sendBuffer, "\"DeviceName\":");
+    strcat(sendBuffer, "\"");
+    strcat(sendBuffer, deviceId.c_str());
+    strcat(sendBuffer,"\"");
+    strcat(sendBuffer,"," );
+    strcat(sendBuffer, "\"Timestamp\":");
+    strcat(sendBuffer, String(MeasurementTime[ii]).c_str() );
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"P1\":");
+    strcat(sendBuffer, String((P1[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"CO2\":");
+    strcat(sendBuffer, String((CO2[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"H\":");
+    strcat(sendBuffer, String((H[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"T\":");
+    strcat(sendBuffer, String((T[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"P5\":");
+    strcat(sendBuffer, String((P5[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"NH3\":");
+    strcat(sendBuffer, String((NH3[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"P7\":");
+    strcat(sendBuffer, String((P7[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"P8\":");
+    strcat(sendBuffer, String((P8[ii])).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"RC\":");
+    strcat(sendBuffer, String((lastResetCause)).c_str());
+    strcat(sendBuffer,",");
+    strcat(sendBuffer, "\"SS\":");
+    strcat(sendBuffer, String((signalStrength)).c_str());
+    strcat(sendBuffer, "}");
 
-  
+    Serial.println("Format send to MQTT");
+    Serial.println(sendBuffer);
 
-  Serial.println("Format send to MQTT");
-  Serial.println(sendBuffer);
+    sodaq_wdt_reset(); // Reset de WDT
 
-  sodaq_wdt_reset(); // Reset de WDT
-
-  Serial.println("sending data...");
-  mqttClient.beginMessage("devices/" + DeviceName + "/messages/events/");
-  mqttClient.print(sendBuffer);
-  mqttClient.endMessage();
-  Serial.println("End sending data");
+    Serial.println("sending data...");
+    mqttClient.beginMessage("devices/" + DeviceName + "/messages/events/");
+    mqttClient.print(sendBuffer);
+    mqttClient.endMessage();
+    Serial.println("End sending data");
+    mqttClient.poll();
+  }
 }
 
 //=================================================================================================
@@ -707,6 +674,8 @@ void publishMessage()
 //=================================================================================================
 void connectMQTT()
 {
+
+  int retryCounter = 0;
 
   String endPoint;
   char _mqttEndpoint[128 + 1];
@@ -725,17 +694,29 @@ void connectMQTT()
   while (!mqttClient.connect(_mqttEndpoint, 8883))
   {
     // failed, retry
+    retryCounter += 1;
     Serial.print(".");
     Serial.println(mqttClient.connectError());
-    sodaq_wdt_safe_delay(5000);
+    writeToLogFile("Connection error with IOT-HUB. ");
+
+    sodaq_wdt_safe_delay(1000);
     if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY) {
+      writeToLogFile("Connection error with IOT-HUB make new connection with T-Mobile");
       connectNB();
+    }
+    if (retryCounter == 5)
+    {
+      Serial.println("Retry counter for connecting to IOT-HUB is 5. Reboot");
+      writeToLogFile("Retry counter for connecting to IOT-HUB is 5. Reboot");
+      resetFunc();
     }
   }
 
   Serial.println();
 
   Serial.println("You're connected to the MQTT broker");
+  writeToLogFile("You're connected to the MQTT broker");
+
   Serial.println();
 
   // subscribe to a topic
@@ -757,55 +738,23 @@ void getSensorData()
   writeToLogFile("Reading ADC converters....");
   int16_t value;
 
-  P1 = ads1115_48.readADC_SingleEnded(3);
-  Serial.println("Reading P1");
-  sodaq_wdt_safe_delay(200);
+  P1[measurementPointer] = ads1115_48.readADC_SingleEnded(3);
+  CO2[measurementPointer] = ads1115_48.readADC_SingleEnded(2);
+  H[measurementPointer] = ads1115_48.readADC_SingleEnded(1);
+  T[measurementPointer] = ads1115_48.readADC_SingleEnded(0);
+  P5[measurementPointer] = ads1115_49.readADC_SingleEnded(3);
+  NH3[measurementPointer] = ads1115_49.readADC_SingleEnded(2);
+  P7[measurementPointer] = ads1115_49.readADC_SingleEnded(1);
+  P8[measurementPointer] = ads1115_49.readADC_SingleEnded(0);
+  MeasurementTime[measurementPointer] = getTime();
+  Serial.println("Reading ports done, write data to SD card");
 
-  CO2 = ads1115_48.readADC_SingleEnded(2);
-  Serial.println("Reading CO2");
-  sodaq_wdt_safe_delay(200);
-
-  H = ads1115_48.readADC_SingleEnded(1);
-  Serial.println("Reading H....");
-  sodaq_wdt_safe_delay(200);
-
-  T = ads1115_48.readADC_SingleEnded(0);
-  Serial.println("Reading Temp....");
-  sodaq_wdt_safe_delay(200);
-
-  P5 = ads1115_49.readADC_SingleEnded(3);
-  Serial.println("Reading P5....");
-  sodaq_wdt_safe_delay(200);
-
-  NH3 = ads1115_49.readADC_SingleEnded(2);
-  Serial.println("Reading NH3....");
-  sodaq_wdt_safe_delay(200);
-
-  P7 = ads1115_49.readADC_SingleEnded(1);
-  Serial.println("Reading P7....");
-  sodaq_wdt_safe_delay(200);
-
-  P8 = ads1115_49.readADC_SingleEnded(0);
-  Serial.println("Reading p8....");
-  sodaq_wdt_safe_delay(200);
-
-  MeasurementTime = getTime();
-
-/* Send values to display */
-  Serial.println("***************** Actual values read from port ***************************** ");
-  Serial.print("CO2 :"); Serial.println(CO2);
-  Serial.print("H   :"); Serial.println(H);
-  Serial.print("T   :"); Serial.println(T);
-  Serial.print("NH3 :"); Serial.println(NH3);
-  Serial.println("**************************************************************************** ");
-
-  writeToDataFile(MeasurementTime, H, T, CO2, NH3, P1, P5, P7, P8);
+  writeToDataFile(MeasurementTime[measurementPointer], H[measurementPointer], T[measurementPointer], CO2[measurementPointer], NH3[measurementPointer], P1[measurementPointer], P5[measurementPointer], P7[measurementPointer], P8[measurementPointer]);
 
   if (params._isLedEnabled)
   {
     blinkLed(1);
   }
-  //record->time = getTime();
 }
 
 //=================================================================================================
@@ -927,7 +876,9 @@ void blinkLed(int times)
 //=================================================================================================
 void writeToLogFile(String message)
 {
-  String logfileName = "rdfv.log";
+  String logfileName = logFileFromDate();
+  Serial.print("Name of logfile: ");
+  Serial.println(logfileName);
 
   if (sdPresent) {
     Serial.print("Writing :");
@@ -951,22 +902,22 @@ void writeToLogFile(String message)
 void writeToDataFile(unsigned long time, int16_t H, int16_t T, int16_t CO2, int16_t NH3, int16_t P1, int16_t P5, int16_t P7, int16_t P8)
 {
   Serial.println("Write to datafile");
-  String datafileName = "rdfv.dat";
+  String datafileName = dataFileFromDate();
   if (sdPresent) {
     File dataFile = SD.open(datafileName, FILE_WRITE);
     dataFile.print(time);
+    dataFile.print(",");
+    dataFile.print(P1);
+    dataFile.print(",");
+    dataFile.print(CO2);
     dataFile.print(",");
     dataFile.print(H);
     dataFile.print(",");
     dataFile.print(T);
     dataFile.print(",");
-    dataFile.print(CO2);
+    dataFile.print(P5);
     dataFile.print(",");
     dataFile.print(NH3);
-    dataFile.print(",");
-    dataFile.print(P1);
-    dataFile.print(",");
-    dataFile.print(P5);
     dataFile.print(",");
     dataFile.print(P7);
     dataFile.print(",");
@@ -1094,8 +1045,8 @@ void setupModem()
   Serial.println("Set operator to KPN...");
   writeToLogFile("Set operator to KPN...");
 
-  MODEM.sendf("AT+COPS=1,2,\"20416\"");
-  //MODEM.sendf("AT+COPS=1,2,\"20408\"");
+  //MODEM.sendf("AT+COPS=1,2,\"20416\"");
+  MODEM.sendf("AT+COPS=1,2,\"20408\"");
   MODEM.waitForResponse(2000, &response);
   Serial.print("Operator response: ");
   Serial.println(response);
@@ -1118,5 +1069,93 @@ int freeMemory() {
 #else  // __arm__
   return __brkval ? &top - __brkval : &top - __malloc_heap_start;
 #endif  // __arm__
+}
+
+//=================================================================================================
+// Function:    setTime()
+// Return:      -
+// Description: Get the time from the telecom provider en set this to the RTC.
+//=================================================================================================
+void setTime()
+{
+  struct tm t = {0};
+  time_t epoch;
+  int YEAR, MONTH, DAY, HOUR, MINUTE, SECONDS, TZ;
+  char timeBuffer[50];
+
+  Serial.println("Trying to get the time from T-Mobile...");
+  writeToLogFile("Trying to get the time from T-Mobile...");
+
+  if (nbAccess.status() == NB_READY || gprs.status() == GPRS_READY )
+  {
+    rtc.begin();
+
+    Serial.println("Connection established with T-Mobile");
+    writeToLogFile("Connection established with T-Mobile");
+
+    MODEM.send("AT+CCLK?");
+    MODEM.waitForResponse(2000, &response);
+    Serial.print("Time: ");
+    Serial.println(response);
+
+    int x = response.indexOf(String('"'))+1;                  //Get rit of AT stuff
+    int y = response.lastIndexOf(String('"'));
+    response.substring(x,y).toCharArray(timeBuffer,50);       //Write string to char buffer
+
+    //const char *timeData = "22/03/02,14:17:40+22"; 
+    sscanf(timeBuffer, "%d/%d/%d,%d:%d:%d+%d", &YEAR, &MONTH, &DAY, &HOUR, &MINUTE, &SECONDS, &TZ);
+
+    t.tm_year = YEAR + 100;
+    t.tm_mon = MONTH - 1;
+    t.tm_mday = DAY;
+    t.tm_hour = HOUR;
+    t.tm_min = MINUTE;
+    t.tm_sec = SECONDS;
+    epoch = mktime(&t);     // -19800 TZ correction To get UTC
+
+    byte year, month, day, hour, minute, seconds;
+    year = (byte) YEAR;
+    month = (byte) MONTH;
+    day = (byte) DAY;
+    hour = (byte) HOUR;
+    minute = (byte) MINUTE;
+    seconds = (byte) SECONDS;
+    
+
+    rtc.setTime(hour, minute, seconds);
+    rtc.setDate(day, month, year );    
+
+    Serial.print("RTCTime set to :");
+    Serial.println(rtc.getEpoch());
+  }
+  else
+  {
+    Serial.println("No connection established with T-Mobile, Time not set");
+    writeToLogFile("No connection established with T-Mobile, Time not set");
+  }
+}
+
+String dataFileFromDate() {
+  String result = "";
+  if (rtc.getDay() < 10) result += "0";
+  result += String(rtc.getDay());
+  if (rtc.getMonth() < 10) result += "0";
+  result += String(rtc.getMonth());
+  if (rtc.getYear() < 10) result += "0";
+  result += String(rtc.getYear());
+  result += ".CSV";
+  return result;
+}
+
+String logFileFromDate() {
+  String result = "";
+  if (rtc.getDay() < 10) result += "0";
+  result += String(rtc.getDay());
+  if (rtc.getMonth() < 10) result += "0";
+  result += String(rtc.getMonth());
+  if (rtc.getYear() < 10) result += "0";
+  result += String(rtc.getYear());
+  result += ".LOG";
+  return result;
 }
 

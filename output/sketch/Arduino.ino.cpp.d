@@ -145,10 +145,8 @@ c:\Projects\rdfv\output\sketch\Arduino.ino.cpp.o: \
  C:\Arduino15\libraries\Adafruit_BusIO/Adafruit_I2CDevice.h \
  C:\Arduino15\libraries\MKRNB\src/Modem.h \
  C:\Arduino15\libraries\ArduinoECCX08\src/utility/ECCX08SelfSignedCert.h \
- c:\Projects\rdfv\output\sketch\iot_configs.h \
  c:\Projects\rdfv\output\sketch\Params.h \
  c:\Projects\rdfv\output\sketch\BootMenu.h \
- c:\Projects\rdfv\output\sketch\DataRecord.h \
  c:\Projects\rdfv\output\sketch\Sodaq_wdt.h \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson.h \
  C:\Arduino15\libraries\ArduinoJson\src/ArduinoJson.hpp \
@@ -162,4 +160,5 @@ c:\Projects\rdfv\output\sketch\Arduino.ino.cpp.o: \
  C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/SdInfo.h \
  C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/FatStructs.h \
  C:\Users\seige001\AppData\Local\Arduino15\packages\arduino\hardware\samd\1.8.13\cores\arduino/api/deprecated/Print.h \
- C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/SdFatUtil.h
+ C:\Program\ Files\ (x86)\Arduino\libraries\SD\src/utility/SdFatUtil.h \
+ C:\Arduino15\libraries\RTCZero\src/RTCZero.h
