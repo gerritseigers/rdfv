@@ -35,24 +35,24 @@ extern char *__brkval;
 #define STARTUP_DELAY 2 // 20 seconden om te booten
 #define CONSOLE_STREAM SerialUSB
 
-#define MAX_NUMBER_OF_MEASUREMENTS              60      // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
-#define START_NUMBER_OF_MEASUREMENTS_THRESHOLD  15      //Aantal metingen voordat er wordt geprobeerd om de data te versturen.
-#define DEFAULT_MEASUREMENT_INTERVAL            59000   //aantal ms voordat de er een nieuwe meting wordt uitgevoerd.
+#define DEVICE_NAME                             "A04072212" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
+#define MAX_NUMBER_OF_MEASUREMENTS              15          // Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS
+#define START_NUMBER_OF_MEASUREMENTS_THRESHOLD  1           //Aantal metingen voordat er wordt geprobeerd om de data te versturen (10).
+#define DEFAULT_MEASUREMENT_INTERVAL            5           //aantal seconden voordat de er een nieuwe meting wordt uitgevoerd (58).
 #define DEFAULT_NUMBER_OF_MEASUREMENTS          1
-#define SEND_TO_IOTHUB                          1       //Moet de data worden verstuurd naar Azure.        
+#define SEND_TO_IOTHUB                          1           //Moet de data worden verstuurd naar Azure.        
 
 #define DEBUG 1
 #define REGISTERED 1
-#define DEVICE_NAME "A04072209" // THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!
-#define MQTT_BROKER "euw-iothub-rdfv-pr.azure-devices.net"
+#define MQTT_BROKER                             "euw-iothub-rdfv-pr.azure-devices.net"
 
 #define USE_GPS 1
 #define USE_LED 1
 #define PIN_NUMBER "915684"
 #define APN_A "iot.t-mobile.nl"
 
-#define MIN_SIGNAL_STRENGTH                 15      // get from modem the detected carrier (31 > 51 dBm)
-#define NO_SIGNAL_STRENGTH                  99      // What signal is detected when modem starts with no antenne or still initializing
+#define MIN_SIGNAL_STRENGTH                   15      // get from modem the detected carrier (31 > 51 dBm)
+#define NO_SIGNAL_STRENGTH                    99      // What signal is detected when modem starts with no antenne or still initializing
 
 //#define PORT1 "T"
 #define PORT2 "CO2"
@@ -115,8 +115,8 @@ RTCZero       rtc;
 String username;
 String broker;
 
-Adafruit_ADS1015 ads1115_48;
-Adafruit_ADS1015 ads1115_49;
+//Adafruit_ADS1015 ads1115_48;
+//Adafruit_ADS1015 ads1115_49;
 
 /* Declare the function that are needed in the sketch */
 unsigned long getTime();
@@ -166,8 +166,9 @@ void setup()
   lastResetCause = PM->RCAUSE.reg;
   blinkLed(5);
 
-  ads1115_48.begin(0x48);
-  ads1115_49.begin(0x49);
+  //ads1115_48.begin(0x48);
+  //ads1115_49.begin(0x49);
+  analogReadResolution(12);
 
     // if coming from WDT reset!
   if (lastResetCause & PM_RCAUSE_WDT)
@@ -225,8 +226,8 @@ void setup()
   Serial.begin(115200);
 
 
-  ads1115_48.setGain(GAIN_TWO);
-  ads1115_49.setGain(GAIN_TWO);
+  //ads1115_48.setGain(GAIN_TWO);
+  //ads1115_49.setGain(GAIN_TWO);
 
   repeatCounter = 0;
 
@@ -246,7 +247,7 @@ void setup()
 //=================================================================================================
 void loop()
 {
-
+	sodaq_wdt_enable(WDT_PERIOD_8X);  
   sodaq_wdt_reset();                                                        // Reset de WDT
 
   if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY)
@@ -256,74 +257,90 @@ void loop()
     connectNB();
   }
 
-  blinkLed(2);
-  getSensorData();
-
-  if (measurementPointer >= START_NUMBER_OF_MEASUREMENTS_THRESHOLD)
+  if (!mqttClient.connected() && SEND_TO_IOTHUB == 1)
   {
-    Serial.println("measurement pointers is greater or equal the treshold");
-    writeToLogFile("measurement pointers is greater or equal the treshold");
+    Serial.println("No connection with Azure");
+    writeToLogFile("No connection with Azure");
+    connectMQTT();
+  }
 
-    if (measurementPointer >= MAX_NUMBER_OF_MEASUREMENTS)
+  blinkLed(1);
+
+  if (repeatCounter == 0)
+  {
+    getSensorData();
+    if (measurementPointer >= START_NUMBER_OF_MEASUREMENTS_THRESHOLD)
     {
-        Serial.println("Reboot arduino because buffer overflow");
-        writeToLogFile("Reboot arduino because buffer overflow");
-        resetFunc();
-    }
-    else
-    {
-      if (SEND_TO_IOTHUB == 1)
+      Serial.println("measurement pointers is greater or equal the treshold");
+      writeToLogFile("measurement pointers is greater or equal the treshold");
+
+      if (measurementPointer >= MAX_NUMBER_OF_MEASUREMENTS)
       {
-        Serial.println("trying to send data to the IOT-HUB");
-        writeToLogFile("trying to send data to the IOT-HUB");
-
-        int signalStrength = nbScanner.getSignalStrength().toInt();
-        Serial.print("Signal strength :");
-        Serial.print(signalStrength);
-        Serial.println(" dB");
-
-        if (signalStrength != NO_SIGNAL_STRENGTH && signalStrength > MIN_SIGNAL_STRENGTH  )
-        {          
-          if (!mqttClient.connected() && SEND_TO_IOTHUB == 1)
-          {
-            Serial.println("No connection with Azure");
-            writeToLogFile("No connection with Azure");
-            connectMQTT();
-          }
-
-          Serial.println("Send message to IOT-HUB enough signal strength");
-          writeToLogFile("Send message to IOT-HUB enough signal strength");
-          publishMessage();
-          measurementPointer = 0;
-        }
-        else
-        {
-          Serial.println("To weak signal to send. Trying again in next loop");
-          writeToLogFile("To weak signal to send. Trying again in next loop");
-          measurementPointer += 1;
-        }
+          Serial.println("Reboot arduino because buffer overflow");
+          writeToLogFile("Reboot arduino because buffer overflow");
+          resetFunc();
       }
       else
       {
-        Serial.println("Not sending to Azure because of configuration setting");
-        writeToLogFile("Not sending to Azure because of configuration setting");
-        measurementPointer = 0;
+        if (SEND_TO_IOTHUB == 1)
+        {
+          Serial.println("trying to send data to the IOT-HUB");
+          writeToLogFile("trying to send data to the IOT-HUB");
+
+          int signalStrength = nbScanner.getSignalStrength().toInt();
+          Serial.print("Signal strength :");
+          Serial.print(signalStrength);
+          Serial.println(" dB");
+
+          if (signalStrength != NO_SIGNAL_STRENGTH && signalStrength > MIN_SIGNAL_STRENGTH  )
+          {          
+
+            blinkLed(5);
+            Serial.println("Send message to IOT-HUB enough signal strength");
+            writeToLogFile("Send message to IOT-HUB enough signal strength");
+            publishMessage();
+            measurementPointer = 0;
+          }
+          else
+          {
+            Serial.println("To weak signal to send. Trying again in next loop");
+            writeToLogFile("To weak signal to send. Trying again in next loop");
+            measurementPointer += 1;
+          }
+        }
+        else
+        {
+          Serial.println("Not sending to Azure because of configuration setting");
+          writeToLogFile("Not sending to Azure because of configuration setting");
+          measurementPointer = 0;
+        }
       }
     }
+    else
+    {
+      Serial.print("Number of message in cache ");
+      Serial.print(measurementPointer);
+      Serial.print(" of ");
+      Serial.println(MAX_NUMBER_OF_MEASUREMENTS);
+
+      measurementPointer += 1;
+    }
   }
-  else
+  repeatCounter += 1;
+  if (repeatCounter >= DEFAULT_MEASUREMENT_INTERVAL )
   {
-    Serial.print("Number of message in cache ");
-    Serial.print(measurementPointer);
-    Serial.print(" of ");
-    Serial.println(MAX_NUMBER_OF_MEASUREMENTS);
-
-    measurementPointer += 1;
+    repeatCounter = 0;
   }
 
-  Serial.println("Waiting for next measurement");
-  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
 
+  Serial.print("Waiting for next measurement. Value of repeatcounter :");
+  Serial.println(repeatCounter);
+  if (SEND_TO_IOTHUB == 1)
+  {
+    Serial.println("Polling mqtt");
+    mqttClient.poll();
+  }
+  delay(800);
 }
 
 //=================================================================================================
@@ -520,8 +537,6 @@ void publishSettings()
   Serial.println('New Json');
   Serial.println(sendBuffer);
 
-  sodaq_wdt_reset(); // Reset de WDT
-
   Serial.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
   mqttClient.print(sendBuffer);
@@ -660,8 +675,8 @@ void connectMQTT()
   endPoint += DeviceName;
   endPoint += "/messages/devicebound/#";
 
- // Serial.println("Disable WDT");
-//  sodaq_wdt_disable();
+  Serial.println("Reset WDT");
+  sodaq_wdt_reset();  
 
   strcpy(_mqttEndpoint, MQTTBroker.c_str());
   Serial.print("Attempting to MQTT broker: ");
@@ -681,6 +696,7 @@ void connectMQTT()
       writeToLogFile("Connection error with IOT-HUB make new connection with T-Mobile");
       connectNB();
     }
+
     if (retryCounter == 5)
     {
       Serial.println("Retry counter for connecting to IOT-HUB is 5. Reboot");
@@ -700,8 +716,6 @@ void connectMQTT()
   Serial.print("Device is listening to endPoint :");
   Serial.println(endPoint);
   mqttClient.subscribe(endPoint);
-//  Serial.println("Enble WDT");
-//  sodaq_wdt_enable(WDT_PERIOD_8X);
 }
 
 //=================================================================================================
@@ -711,20 +725,83 @@ void connectMQTT()
 //=================================================================================================
 void getSensorData()
 {
-  Serial.println("Reading ADC converters....");
-  writeToLogFile("Reading ADC converters....");
-  int16_t value;
 
-  P1[measurementPointer] = ads1115_48.readADC_SingleEnded(3);
-  CO2[measurementPointer] = ads1115_48.readADC_SingleEnded(2);
-  H[measurementPointer] = ads1115_48.readADC_SingleEnded(1);
-  T[measurementPointer] = ads1115_48.readADC_SingleEnded(0);
-  P5[measurementPointer] = ads1115_49.readADC_SingleEnded(3);
-  NH3[measurementPointer] = ads1115_49.readADC_SingleEnded(2);
-  P7[measurementPointer] = ads1115_49.readADC_SingleEnded(1);
-  P8[measurementPointer] = ads1115_49.readADC_SingleEnded(0);
+#define MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP 10
+
+  long port_0=0;
+  long port_1=0;
+  long port_2=0;
+  long port_3=0;
+  long port_4=0;
+  long port_5=0;
+  long port_6=0;
+  
+  Serial.println("Reading ADC converters (v.1.0)");
+  writeToLogFile("Reading ADC converters....");
+
+  for(int ii=0;ii<MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP;ii++)
+  {
+    Serial.print("Measurement :");
+    Serial.print(ii);
+    Serial.print(" out of ");
+    Serial.println(MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP);
+
+    port_0 += analogRead(A0);
+    delay(200);
+    port_1 += analogRead(A1);
+    delay(200);
+    port_2 += analogRead(A2);
+    delay(200);
+    port_3 += analogRead(A3);
+    delay(200);
+    // port_4 += analogRead(A4);
+    // delay(200);
+    // port_5 += analogRead(A5);
+    // delay(200);
+    // port_6 += analogRead(A6);
+    // delay(200);
+  }
+
+  P1[measurementPointer] = int( (port_0 / MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP) * (3300.0F / 4096.0F) );
+  CO2[measurementPointer] = int( (port_1 / MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP) * (3300.0F / 4096.0F) );
+  H[measurementPointer] = int( (port_2 / MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP) * (3300.0F / 4096.0F) );
+  T[measurementPointer] = int( (port_3 / MAX_NUMBER_OF_MEASUREMENTS_IN_LOOP) * (3300.0F / 4096.0F) );
+  P5[measurementPointer] = 0;
+  NH3[measurementPointer] =0;
+  P7[measurementPointer] = 0;
+  P8[measurementPointer] = 0;
   MeasurementTime[measurementPointer] = getTime();
   Serial.println("Reading ports done, write data to SD card");
+
+  Serial.println("Reading ports done, write data to SD card");
+
+  Serial.print("Time :");
+  Serial.println(MeasurementTime[measurementPointer]);
+
+  Serial.print("H :");
+  Serial.println(H[measurementPointer]);
+
+  Serial.print("T :");
+  Serial.println(T[measurementPointer]);
+
+  Serial.print("CO2 :");
+  Serial.println(CO2[measurementPointer]);
+
+  // Serial.print("NH3 :");
+  // Serial.println(NH3[measurementPointer]);
+
+  Serial.print("P1 :");
+  Serial.println(P1[measurementPointer]);
+
+  // Serial.print("P5 :");
+  // Serial.println(P5[measurementPointer]);
+
+  // Serial.print("P7 :");
+  // Serial.println(P7[measurementPointer]);
+
+  // Serial.print("P8 :");
+  // Serial.println(P8[measurementPointer]);
+
 
   writeToDataFile(MeasurementTime[measurementPointer], H[measurementPointer], T[measurementPointer], CO2[measurementPointer], NH3[measurementPointer], P1[measurementPointer], P5[measurementPointer], P7[measurementPointer], P8[measurementPointer]);
 
@@ -835,14 +912,19 @@ void onMessageReceived(int messageSize)
   }
 }
 
+//=================================================================================================
+// Function:    blinkLed
+// Return:      -
+// Description: Blinks the led  
+//=================================================================================================
 void blinkLed(int times)
 {
   for (int ii = 0; ii < times; ii++)
   {
     digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage level)
-    sodaq_wdt_safe_delay(200);
+    delay(200);
     digitalWrite(LED_BUILTIN, LOW); // turn the LED off by making the voltage LOW
-    sodaq_wdt_safe_delay(200);
+    delay(200);
   }
 }
 
@@ -912,9 +994,6 @@ void connectNB()
   Serial.println("Attempting to connect to the cellular network");
   writeToLogFile("Attempting to connect to the cellular network");
 
-  Serial.println("Disable WDT");
-  sodaq_wdt_disable();
-
   //Connect only to T-Mobile if the signal strength is OK
   while ( (nbScanner.getSignalStrength().toInt() < MIN_SIGNAL_STRENGTH) || (nbScanner.getSignalStrength().toInt() == NO_SIGNAL_STRENGTH) )
     {
@@ -930,10 +1009,6 @@ void connectNB()
     Serial.print(".");
     delay(1000);
   }
-
-  Serial.println("Enble WDT");
-  sodaq_wdt_enable(WDT_PERIOD_8X);
-
   Serial.println("You're connected to the cellular network");
   writeToLogFile("You're connected to the cellular network");
   Serial.println(); 

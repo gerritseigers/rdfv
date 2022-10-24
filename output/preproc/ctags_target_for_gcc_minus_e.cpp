@@ -69,15 +69,15 @@ int measurementPointer = 0;
 // int measurementPointer = 0; // Actueel aantal metingen dat gedaan is.
 
 //Variables for reading the ports
-int16_t P1[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
-int16_t CO2[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port2 p1_2
-int16_t H[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port3 p1_3 
-int16_t T[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port4 p1_4
-int16_t P5[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
-int16_t NH3[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port6 p2_2
-int16_t P7[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
-int16_t P8[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
-int32_t MeasurementTime[60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Time of measurement
+int16_t P1[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
+int16_t CO2[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port2 p1_2
+int16_t H[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port3 p1_3 
+int16_t T[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port4 p1_4
+int16_t P5[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
+int16_t NH3[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Port6 p2_2
+int16_t P7[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
+int16_t P8[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/];
+int32_t MeasurementTime[15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/]; //Time of measurement
 
 int16_t repeatCounter; // 
 int16_t wdtCounter;
@@ -95,8 +95,8 @@ RTCZero rtc;
 String username;
 String broker;
 
-Adafruit_ADS1015 ads1115_48;
-Adafruit_ADS1015 ads1115_49;
+//Adafruit_ADS1015 ads1115_48;
+//Adafruit_ADS1015 ads1115_49;
 
 /* Declare the function that are needed in the sketch */
 unsigned long getTime();
@@ -146,8 +146,9 @@ void setup()
   lastResetCause = ((Pm *)0x40000400UL) /**< \brief (PM) APB Base Address */->RCAUSE.reg;
   blinkLed(5);
 
-  ads1115_48.begin(0x48);
-  ads1115_49.begin(0x49);
+  //ads1115_48.begin(0x48);
+  //ads1115_49.begin(0x49);
+  analogReadResolution(12);
 
     // if coming from WDT reset!
   if (lastResetCause & (0x1ul << 5 /**< \brief (PM_RCAUSE) Watchdog Reset */))
@@ -205,8 +206,8 @@ void setup()
   SerialUSB.begin(115200);
 
 
-  ads1115_48.setGain(GAIN_TWO);
-  ads1115_49.setGain(GAIN_TWO);
+  //ads1115_48.setGain(GAIN_TWO);
+  //ads1115_49.setGain(GAIN_TWO);
 
   repeatCounter = 0;
 
@@ -226,7 +227,7 @@ void setup()
 //=================================================================================================
 void loop()
 {
-
+ sodaq_wdt_enable(WDT_PERIOD_8X);
   sodaq_wdt_reset(); // Reset de WDT
 
   if (nbAccess.status() != NB_READY || gprs.status() != GPRS_READY)
@@ -236,74 +237,90 @@ void loop()
     connectNB();
   }
 
-  blinkLed(2);
-  getSensorData();
-
-  if (measurementPointer >= 15 /*Aantal metingen voordat er wordt geprobeerd om de data te versturen.*/)
+  if (!mqttClient.connected() && 1 /*Moet de data worden verstuurd naar Azure.        */ == 1)
   {
-    SerialUSB.println("measurement pointers is greater or equal the treshold");
-    writeToLogFile("measurement pointers is greater or equal the treshold");
+    SerialUSB.println("No connection with Azure");
+    writeToLogFile("No connection with Azure");
+    connectMQTT();
+  }
 
-    if (measurementPointer >= 60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/)
+  blinkLed(1);
+
+  if (repeatCounter == 0)
+  {
+    getSensorData();
+    if (measurementPointer >= 1 /*Aantal metingen voordat er wordt geprobeerd om de data te versturen (10).*/)
     {
-        SerialUSB.println("Reboot arduino because buffer overflow");
-        writeToLogFile("Reboot arduino because buffer overflow");
-        resetFunc();
-    }
-    else
-    {
-      if (1 /*Moet de data worden verstuurd naar Azure.        */ == 1)
+      SerialUSB.println("measurement pointers is greater or equal the treshold");
+      writeToLogFile("measurement pointers is greater or equal the treshold");
+
+      if (measurementPointer >= 15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/)
       {
-        SerialUSB.println("trying to send data to the IOT-HUB");
-        writeToLogFile("trying to send data to the IOT-HUB");
-
-        int signalStrength = nbScanner.getSignalStrength().toInt();
-        SerialUSB.print("Signal strength :");
-        SerialUSB.print(signalStrength);
-        SerialUSB.println(" dB");
-
-        if (signalStrength != 99 /* What signal is detected when modem starts with no antenne or still initializing*/ && signalStrength > 15 /* get from modem the detected carrier (31 > 51 dBm)*/ )
-        {
-          if (!mqttClient.connected() && 1 /*Moet de data worden verstuurd naar Azure.        */ == 1)
-          {
-            SerialUSB.println("No connection with Azure");
-            writeToLogFile("No connection with Azure");
-            connectMQTT();
-          }
-
-          SerialUSB.println("Send message to IOT-HUB enough signal strength");
-          writeToLogFile("Send message to IOT-HUB enough signal strength");
-          publishMessage();
-          measurementPointer = 0;
-        }
-        else
-        {
-          SerialUSB.println("To weak signal to send. Trying again in next loop");
-          writeToLogFile("To weak signal to send. Trying again in next loop");
-          measurementPointer += 1;
-        }
+          SerialUSB.println("Reboot arduino because buffer overflow");
+          writeToLogFile("Reboot arduino because buffer overflow");
+          resetFunc();
       }
       else
       {
-        SerialUSB.println("Not sending to Azure because of configuration setting");
-        writeToLogFile("Not sending to Azure because of configuration setting");
-        measurementPointer = 0;
+        if (1 /*Moet de data worden verstuurd naar Azure.        */ == 1)
+        {
+          SerialUSB.println("trying to send data to the IOT-HUB");
+          writeToLogFile("trying to send data to the IOT-HUB");
+
+          int signalStrength = nbScanner.getSignalStrength().toInt();
+          SerialUSB.print("Signal strength :");
+          SerialUSB.print(signalStrength);
+          SerialUSB.println(" dB");
+
+          if (signalStrength != 99 /* What signal is detected when modem starts with no antenne or still initializing*/ && signalStrength > 15 /* get from modem the detected carrier (31 > 51 dBm)*/ )
+          {
+
+            blinkLed(5);
+            SerialUSB.println("Send message to IOT-HUB enough signal strength");
+            writeToLogFile("Send message to IOT-HUB enough signal strength");
+            publishMessage();
+            measurementPointer = 0;
+          }
+          else
+          {
+            SerialUSB.println("To weak signal to send. Trying again in next loop");
+            writeToLogFile("To weak signal to send. Trying again in next loop");
+            measurementPointer += 1;
+          }
+        }
+        else
+        {
+          SerialUSB.println("Not sending to Azure because of configuration setting");
+          writeToLogFile("Not sending to Azure because of configuration setting");
+          measurementPointer = 0;
+        }
       }
     }
+    else
+    {
+      SerialUSB.print("Number of message in cache ");
+      SerialUSB.print(measurementPointer);
+      SerialUSB.print(" of ");
+      SerialUSB.println(15 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/);
+
+      measurementPointer += 1;
+    }
   }
-  else
+  repeatCounter += 1;
+  if (repeatCounter >= 5 /*aantal seconden voordat de er een nieuwe meting wordt uitgevoerd (58).*/ )
   {
-    SerialUSB.print("Number of message in cache ");
-    SerialUSB.print(measurementPointer);
-    SerialUSB.print(" of ");
-    SerialUSB.println(60 /* Maximum aantal metingen dat in het buffer mag staan. Deze moet altijd groter zijn dan de parameter DEFAULT_NUMBER_OF_MEASUREMENTS*/);
-
-    measurementPointer += 1;
+    repeatCounter = 0;
   }
 
-  SerialUSB.println("Waiting for next measurement");
-  sodaq_wdt_safe_delay(params._defaultMeasurementInterval);
 
+  SerialUSB.print("Waiting for next measurement. Value of repeatcounter :");
+  SerialUSB.println(repeatCounter);
+  if (1 /*Moet de data worden verstuurd naar Azure.        */ == 1)
+  {
+    SerialUSB.println("Polling mqtt");
+    mqttClient.poll();
+  }
+  delay(800);
 }
 
 //=================================================================================================
@@ -348,7 +365,7 @@ void onConfigReset(void)
 
 
 
-  strcpy(params._deviceName, "A04072209" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
+  strcpy(params._deviceName, "A04072212" /* THIS CODE MUST CHANGED FOR EVERY ARDUIO !!!!!*/);
 
 
 
@@ -368,7 +385,7 @@ void onConfigReset(void)
 
 
 
-  params._defaultMeasurementInterval = 59000 /*aantal ms voordat de er een nieuwe meting wordt uitgevoerd.*/;
+  params._defaultMeasurementInterval = 5 /*aantal seconden voordat de er een nieuwe meting wordt uitgevoerd (58).*/;
 
 
 
@@ -417,7 +434,7 @@ void onConfigReset(void)
 
 
   strcpy(params._p2_2, "NH3");
-# 449 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
+# 466 "c:\\Projects\\rdfv\\Arduino\\Arduino.ino"
 }
 
 //=================================================================================================
@@ -491,8 +508,6 @@ void publishSettings()
   SerialUSB.println('=============================================================');
   SerialUSB.println('New Json');
   SerialUSB.println(sendBuffer);
-
-  sodaq_wdt_reset(); // Reset de WDT
 
   SerialUSB.println("Just before sending data");
   mqttClient.beginMessage("devices/" + deviceId + "/messages/events/");
@@ -632,8 +647,8 @@ void connectMQTT()
   endPoint += DeviceName;
   endPoint += "/messages/devicebound/#";
 
- // Serial.println("Disable WDT");
-//  sodaq_wdt_disable();
+  SerialUSB.println("Reset WDT");
+  sodaq_wdt_reset();
 
   strcpy(_mqttEndpoint, MQTTBroker.c_str());
   SerialUSB.print("Attempting to MQTT broker: ");
@@ -653,6 +668,7 @@ void connectMQTT()
       writeToLogFile("Connection error with IOT-HUB make new connection with T-Mobile");
       connectNB();
     }
+
     if (retryCounter == 5)
     {
       SerialUSB.println("Retry counter for connecting to IOT-HUB is 5. Reboot");
@@ -672,8 +688,6 @@ void connectMQTT()
   SerialUSB.print("Device is listening to endPoint :");
   SerialUSB.println(endPoint);
   mqttClient.subscribe(endPoint);
-//  Serial.println("Enble WDT");
-//  sodaq_wdt_enable(WDT_PERIOD_8X);
 }
 
 //=================================================================================================
@@ -683,20 +697,83 @@ void connectMQTT()
 //=================================================================================================
 void getSensorData()
 {
-  SerialUSB.println("Reading ADC converters....");
-  writeToLogFile("Reading ADC converters....");
-  int16_t value;
 
-  P1[measurementPointer] = ads1115_48.readADC_SingleEnded(3);
-  CO2[measurementPointer] = ads1115_48.readADC_SingleEnded(2);
-  H[measurementPointer] = ads1115_48.readADC_SingleEnded(1);
-  T[measurementPointer] = ads1115_48.readADC_SingleEnded(0);
-  P5[measurementPointer] = ads1115_49.readADC_SingleEnded(3);
-  NH3[measurementPointer] = ads1115_49.readADC_SingleEnded(2);
-  P7[measurementPointer] = ads1115_49.readADC_SingleEnded(1);
-  P8[measurementPointer] = ads1115_49.readADC_SingleEnded(0);
+
+
+  long port_0=0;
+  long port_1=0;
+  long port_2=0;
+  long port_3=0;
+  long port_4=0;
+  long port_5=0;
+  long port_6=0;
+
+  SerialUSB.println("Reading ADC converters (v.1.0)");
+  writeToLogFile("Reading ADC converters....");
+
+  for(int ii=0;ii<10;ii++)
+  {
+    SerialUSB.print("Measurement :");
+    SerialUSB.print(ii);
+    SerialUSB.print(" out of ");
+    SerialUSB.println(10);
+
+    port_0 += analogRead(A0);
+    delay(200);
+    port_1 += analogRead(A1);
+    delay(200);
+    port_2 += analogRead(A2);
+    delay(200);
+    port_3 += analogRead(A3);
+    delay(200);
+    // port_4 += analogRead(A4);
+    // delay(200);
+    // port_5 += analogRead(A5);
+    // delay(200);
+    // port_6 += analogRead(A6);
+    // delay(200);
+  }
+
+  P1[measurementPointer] = int( (port_0 / 10) * (3300.0F / 4096.0F) );
+  CO2[measurementPointer] = int( (port_1 / 10) * (3300.0F / 4096.0F) );
+  H[measurementPointer] = int( (port_2 / 10) * (3300.0F / 4096.0F) );
+  T[measurementPointer] = int( (port_3 / 10) * (3300.0F / 4096.0F) );
+  P5[measurementPointer] = 0;
+  NH3[measurementPointer] =0;
+  P7[measurementPointer] = 0;
+  P8[measurementPointer] = 0;
   MeasurementTime[measurementPointer] = getTime();
   SerialUSB.println("Reading ports done, write data to SD card");
+
+  SerialUSB.println("Reading ports done, write data to SD card");
+
+  SerialUSB.print("Time :");
+  SerialUSB.println(MeasurementTime[measurementPointer]);
+
+  SerialUSB.print("H :");
+  SerialUSB.println(H[measurementPointer]);
+
+  SerialUSB.print("T :");
+  SerialUSB.println(T[measurementPointer]);
+
+  SerialUSB.print("CO2 :");
+  SerialUSB.println(CO2[measurementPointer]);
+
+  // Serial.print("NH3 :");
+  // Serial.println(NH3[measurementPointer]);
+
+  SerialUSB.print("P1 :");
+  SerialUSB.println(P1[measurementPointer]);
+
+  // Serial.print("P5 :");
+  // Serial.println(P5[measurementPointer]);
+
+  // Serial.print("P7 :");
+  // Serial.println(P7[measurementPointer]);
+
+  // Serial.print("P8 :");
+  // Serial.println(P8[measurementPointer]);
+
 
   writeToDataFile(MeasurementTime[measurementPointer], H[measurementPointer], T[measurementPointer], CO2[measurementPointer], NH3[measurementPointer], P1[measurementPointer], P5[measurementPointer], P7[measurementPointer], P8[measurementPointer]);
 
@@ -807,14 +884,19 @@ void onMessageReceived(int messageSize)
   }
 }
 
+//=================================================================================================
+// Function:    blinkLed
+// Return:      -
+// Description: Blinks the led  
+//=================================================================================================
 void blinkLed(int times)
 {
   for (int ii = 0; ii < times; ii++)
   {
     digitalWrite((6u), HIGH); // turn the LED on (HIGH is the voltage level)
-    sodaq_wdt_safe_delay(200);
+    delay(200);
     digitalWrite((6u), LOW); // turn the LED off by making the voltage LOW
-    sodaq_wdt_safe_delay(200);
+    delay(200);
   }
 }
 
@@ -884,9 +966,6 @@ void connectNB()
   SerialUSB.println("Attempting to connect to the cellular network");
   writeToLogFile("Attempting to connect to the cellular network");
 
-  SerialUSB.println("Disable WDT");
-  sodaq_wdt_disable();
-
   //Connect only to T-Mobile if the signal strength is OK
   while ( (nbScanner.getSignalStrength().toInt() < 15 /* get from modem the detected carrier (31 > 51 dBm)*/) || (nbScanner.getSignalStrength().toInt() == 99 /* What signal is detected when modem starts with no antenne or still initializing*/) )
     {
@@ -902,10 +981,6 @@ void connectNB()
     SerialUSB.print(".");
     delay(1000);
   }
-
-  SerialUSB.println("Enble WDT");
-  sodaq_wdt_enable(WDT_PERIOD_8X);
-
   SerialUSB.println("You're connected to the cellular network");
   writeToLogFile("You're connected to the cellular network");
   SerialUSB.println();
